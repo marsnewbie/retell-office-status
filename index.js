@@ -88,6 +88,10 @@ app.get("/get-office-status", handler);
 app.post("/get-office-status", handler);
 app.get("/debug", debugHandler);
 
+// ✅ 新增 webhook 路由注册
+const webhookRoutes = require("./routes/webhook");
+app.use("/webhook", webhookRoutes);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
