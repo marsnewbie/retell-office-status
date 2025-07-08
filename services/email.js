@@ -33,8 +33,8 @@ ${formattedItems}
 
 async function sendOrderEmail(data) {
   const mailOptions = {
-    from: '"AI Order Bot" <yourbot@gmail.com>',
-    to: "store@example.com",  // ✅ 改为商家接单邮箱
+    from: '"AI Order Bot" <marsnewbie@gmail.com>',
+    to: "marsnewbie6655@gmail.com",  // ✅ 改为商家接单邮箱
     subject: "📦 New Order Received",
     text: formatOrderEmail(data)
   };
