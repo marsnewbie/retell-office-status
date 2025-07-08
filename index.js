@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(express.json());
+
 const businessHours = {
   0: { open: "17:00", close: "23:30" },
   1: null,
@@ -23,7 +25,7 @@ function isOpenNow(ukTime, hoursToday) {
   return ukTime >= open && ukTime <= close;
 }
 
-app.get("/get-office-status", (req, res) => {
+const handler = (req, res) => {
   const now = new Date();
   const ukTime = new Date(now.toLocaleString("en-GB", { timeZone: "Europe/London" }));
   const day = ukTime.getDay();
@@ -31,12 +33,14 @@ app.get("/get-office-status", (req, res) => {
   const office_status = isOpenNow(ukTime, hoursToday) ? "OPEN" : "CLOSED";
 
   res.json({
-    dynamic_variables: {
-      office_status,
-    },
+    office_status
   });
-});
+};
+
+app.get("/get-office-status", handler);
+app.post("/get-office-status", handler);
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
+
