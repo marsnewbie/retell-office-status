@@ -53,18 +53,41 @@ const handler = (req, res) => {
   }
 
   const now = DateTime.now().setZone(storeData.timezone);
-  const dayIndex = now.weekday % 7; // 1 = Monday ... 7 = Sunday → 0 = Sunday
+  const dayIndex = now.weekday % 7;
   const todayHours = storeData.hours[dayIndex];
   const office_status = isOpenNow(now, todayHours) ? "OPEN" : "CLOSED";
 
   res.json({ office_status });
 };
 
+const debugHandler = (req, res) => {
+  const store = (req.query.store || "").toLowerCase();
+  const storeData = storeHours[store];
+
+  if (!storeData) {
+    return res.status(400).json({ error: "Invalid store ID" });
+  }
+
+  const now = DateTime.now().setZone(storeData.timezone);
+  const dayIndex = now.weekday % 7;
+  const todayHours = storeData.hours[dayIndex];
+  const isOpen = isOpenNow(now, todayHours);
+
+  res.json({
+    store,
+    timezone: storeData.timezone,
+    current_time: now.toISO(),
+    weekday: dayIndex,
+    today_hours: todayHours || "Closed",
+    is_open: isOpen,
+    office_status: isOpen ? "OPEN" : "CLOSED"
+  });
+};
+
 app.get("/get-office-status", handler);
 app.post("/get-office-status", handler);
+app.get("/debug", debugHandler);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
-
