@@ -7,18 +7,27 @@ router.post("/order-confirmed", async (req, res) => {
     const { event, call } = req.body;
     const fromNumber = call?.from_number || "unknown";
 
-    // —— 依次尝试 3 个可能路径 ——
-    const analysis =
-      call?.call_analysis?.custom ||
-      call?.call_analysis?.custom_analysis_data ||
-      call?.custom_analysis_data ||
-      {};
+    // —— 依次尝试 3 个可能路径，并记录命中来源 ——
+    let analysis = {};
+    let source   = "";
+
+    if (call?.call_analysis?.custom) {
+      analysis = call.call_analysis.custom;
+      source   = "call.call_analysis.custom";
+    } else if (call?.call_analysis?.custom_analysis_data) {
+      analysis = call.call_analysis.custom_analysis_data;
+      source   = "call.call_analysis.custom_analysis_data";
+    } else if (call?.custom_analysis_data) {
+      analysis = call.custom_analysis_data;
+      source   = "call.custom_analysis_data";
+    }
 
     // ── 关键日志 ──
     console.log("✅ Webhook event:", event);
     console.log("📞 From number:", fromNumber);
+    console.log("🔑 Analysis source →", source);
     console.log("📦 Order confirmed:", analysis.order_confirmed);
-    console.log("📋 Items:",          analysis.menu_items);
+    console.log("📋 Items:", analysis.menu_items);
 
     // 只处理 call_analyzed
     if (event !== "call_analyzed") {
