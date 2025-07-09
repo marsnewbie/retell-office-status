@@ -2,31 +2,19 @@ const express = require("express");
 const router = express.Router();
 const { sendOrderEmail } = require("../services/email");
 
-// 如果你以后恢复签名校验，可重新启用
-// const crypto = require("crypto");
-// function verifySignature(req, secret) {
-//   const signature = req.headers["x-retell-signature"];
-//   const payload = req.rawBody;
-//   const expectedSignature = crypto
-//     .createHmac("sha256", secret)
-//     .update(payload)
-//     .digest("hex");
-//   return signature === expectedSignature;
-// }
-
 router.post("/order-confirmed", async (req, res) => {
   try {
-    const { event, call } = req.body;
-    console.log("✅ Webhook event received:", event);
+    const { event_type, call_analysis } = req.body;
+    console.log("✅ Webhook event received:", event_type);
 
-    if (event !== "call_analyzed") {
-      console.log("ℹ️ Not a call_analyzed event, skipping.");
-      return res.status(200).send("Not a call_analyzed event, skipping.");
+    if (event_type !== "call_analysis") {
+      console.log("ℹ️ Not a call_analysis event, skipping.");
+      return res.status(200).send("Not a call_analysis event, skipping.");
     }
 
-    const data = call?.custom;
+    const data = call_analysis?.custom;
     if (!data) {
-      console.warn("⚠️ No custom data in call object.");
+      console.warn("⚠️ No custom data found in call_analysis object.");
       return res.status(200).send("No custom data.");
     }
 
