@@ -6,7 +6,7 @@ const crypto = require("crypto");
 // 校验 Retell 的签名
 function verifySignature(req, secret) {
   const signature = req.headers["x-retell-signature"];
-  const payload = JSON.stringify(req.body);
+  const payload = req.rawBody;  // ✅ 使用 rawBody 才能匹配签名
   const expectedSignature = crypto
     .createHmac("sha256", secret)
     .update(payload)
