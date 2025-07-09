@@ -1,27 +1,27 @@
 const express = require("express");
 const router = express.Router();
 const { sendOrderEmail } = require("../services/email");
-const crypto = require("crypto");
+// const crypto = require("crypto"); // 暂时不使用签名验证
 
-// 校验 Retell 的签名
-function verifySignature(req, secret) {
-  const signature = req.headers["x-retell-signature"];
-  const payload = req.rawBody;  // ✅ 使用 rawBody 才能匹配签名
-  const expectedSignature = crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("hex");
-  return signature === expectedSignature;
-}
+// // ✅ 签名校验函数（暂时不用）
+// function verifySignature(req, secret) {
+//   const signature = req.headers["x-retell-signature"];
+//   const payload = req.rawBody;
+//   const expectedSignature = crypto
+//     .createHmac("sha256", secret)
+//     .update(payload)
+//     .digest("hex");
+//   return signature === expectedSignature;
+// }
 
 router.post("/order-confirmed", async (req, res) => {
   try {
-    const RETELL_API_KEY = process.env.RETELL_API_KEY;
+    // const RETELL_API_KEY = process.env.RETELL_API_KEY;
 
-    if (!verifySignature(req, RETELL_API_KEY)) {
-      console.error("❌ Invalid Retell signature");
-      return res.status(403).send("Invalid signature");
-    }
+    // if (!verifySignature(req, RETELL_API_KEY)) {
+    //   console.error("❌ Invalid Retell signature");
+    //   return res.status(403).send("Invalid signature");
+    // }
 
     const { event, call } = req.body;
     console.log("✅ Webhook event:", event);
