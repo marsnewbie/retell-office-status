@@ -65,7 +65,11 @@ const handler = (req, res) => {
   const todayHours = storeData.hours[dayIndex];
   const office_status = isOpenNow(now, todayHours) ? "OPEN" : "CLOSED";
 
-  console.log(`[Status Check] Store: ${store}, Time: ${now.toISO()}, Status: ${office_status}`);
+  console.log(`[Status Check] Store: ${store}`);
+  console.log(`🕒 Local Time: ${now.toISO()}`);
+  console.log(`📅 Weekday: ${dayIndex}, Hours: ${todayHours ? `${todayHours.open}-${todayHours.close}` : "Closed"}`);
+  console.log(`🏪 Status: ${office_status}`);
+
   res.json({ office_status });
 };
 
@@ -94,12 +98,12 @@ const debugHandler = (req, res) => {
   });
 };
 
-// ✅ 路由注册
+// ✅ 注册路由
 app.get("/get-office-status", handler);
 app.post("/get-office-status", handler);
 app.get("/debug", debugHandler);
 
-// ✅ 注册 webhook 路由
+// ✅ 注册 webhook 路由（需确保 rawBody 已注入）
 const webhookRoutes = require("./routes/webhook");
 app.use("/webhook", webhookRoutes);
 
@@ -107,3 +111,4 @@ app.use("/webhook", webhookRoutes);
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
+
