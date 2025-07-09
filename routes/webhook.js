@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router  = express.Router();
 const { sendOrderEmail } = require("../services/email");
 
 router.post("/order-confirmed", async (req, res) => {
@@ -7,26 +7,26 @@ router.post("/order-confirmed", async (req, res) => {
     const { event, call } = req.body;
     const fromNumber = call?.from_number || "unknown";
 
-    // ➊ 打印 call 对象结构（调试用）
-    console.log("🔍 call keys:", Object.keys(call || {}));
-    console.log("🔍 full call obj:", JSON.stringify(call, null, 2));
+    // —— 依次尝试 3 个可能路径 ——
+    const analysis =
+      call?.call_analysis?.custom ||
+      call?.call_analysis?.custom_analysis_data ||
+      call?.custom_analysis_data ||
+      {};
 
-    // ★ 当前假设路径：call.call_analysis.custom
-    const analysis = call?.call_analysis?.custom || {};
+    // ── 关键日志 ──
+    console.log("✅ Webhook event:", event);
+    console.log("📞 From number:", fromNumber);
+    console.log("📦 Order confirmed:", analysis.order_confirmed);
+    console.log("📋 Items:",          analysis.menu_items);
 
-    // ───── 精简日志 ─────
-    console.log(`✅ Webhook event: ${event}`);
-    console.log(`📞 From number: ${fromNumber}`);
-    console.log(`📦 Order confirmed: ${analysis.order_confirmed}`);
-    console.log(`📋 Items: ${analysis.menu_items}`);
-
-    // 仅处理 call_analyzed
+    // 只处理 call_analyzed
     if (event !== "call_analyzed") {
       console.log("ℹ️ Skipped – not call_analyzed");
       return res.status(200).send("Skipped – not call_analyzed");
     }
 
-    // 若 order_confirmed 不为 true 则跳过
+    // 未确认订单则跳过
     if (analysis.order_confirmed !== true) {
       console.log("ℹ️ Skipped – order_confirmed not true");
       return res.status(200).send("Skipped – order not confirmed");
@@ -34,7 +34,7 @@ router.post("/order-confirmed", async (req, res) => {
 
     // 发送邮件
     await sendOrderEmail({
-      from_number:           fromNumber,
+      from_number:            fromNumber,
       delivery_or_collection: analysis.order_type        || "N/A",
       delivery_address:       analysis.delivery_address || "",
       delivery_postcode:      analysis.postcode         || "",
