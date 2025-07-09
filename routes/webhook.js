@@ -16,14 +16,15 @@ const { sendOrderEmail } = require("../services/email");
 
 router.post("/order-confirmed", async (req, res) => {
   try {
-    const { event_type, call_analysis } = req.body;
+    const { event_type, event, call_analysis } = req.body;
+    const actualEvent = event_type || event;
 
     console.log("📥 Full webhook payload:");
     console.log(JSON.stringify(req.body, null, 2));
 
-    console.log("✅ Webhook event_type received:", event_type);
+    console.log("✅ Webhook event received:", actualEvent);
 
-    if (event_type !== "call_analysis") {
+    if (actualEvent !== "call_analysis") {
       console.log("ℹ️ Not a call_analysis event, skipping.");
       return res.status(200).send("Not a call_analysis event, skipping.");
     }
