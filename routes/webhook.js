@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { sendOrderEmail } = require("../services/email");
 
-// 如果你以后恢复签名校验，可取消注释
+// 如果以后恢复签名校验，可取消注释以下内容
 // const crypto = require("crypto");
 // function verifySignature(req, secret) {
 //   const signature = req.headers["x-retell-signature"];
@@ -16,10 +16,14 @@ const { sendOrderEmail } = require("../services/email");
 
 router.post("/order-confirmed", async (req, res) => {
   try {
-    const { event_type, call_analysis } = req.body;
-    console.log("✅ Webhook event received:", event_type);
+    const { event, call_analysis } = req.body;
 
-    if (event_type !== "call_analysis") {
+    console.log("📥 Full webhook payload:");
+    console.log(JSON.stringify(req.body, null, 2));
+
+    console.log("✅ Webhook event received:", event);
+
+    if (event !== "call_analysis") {
       console.log("ℹ️ Not a call_analysis event, skipping.");
       return res.status(200).send("Not a call_analysis event, skipping.");
     }
@@ -35,11 +39,9 @@ router.post("/order-confirmed", async (req, res) => {
       return res.status(200).send("Order not confirmed.");
     }
 
-    // ✅ 打印收到的自定义字段
     console.log("📦 Order Data:");
     console.log(JSON.stringify(data, null, 2));
 
-    // ✅ 发送邮件
     await sendOrderEmail({
       customer_first_name: data.first_name,
       customer_phone: data.phone_number,
