@@ -17,7 +17,7 @@ function formatOrderEmail(data) {
   }).join("\n");
 
   return `
-📞 New Order from ${data.customer_first_name || "Customer"} (${data.customer_phone || "unknown"})
+📞 New Order from ${data.from_number || "unknown"}
 
 📦 Order Type: ${data.delivery_or_collection || "N/A"}
 📍 Address: ${data.delivery_address || "N/A"} (${data.delivery_postcode || ""})
