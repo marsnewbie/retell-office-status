@@ -10,25 +10,25 @@ const transporter = nodemailer.createTransport({
 
 function formatOrderEmail(data) {
   const items = (data.menu_items || "").split(",").map(i => i.trim());
-  const qtys = (data.quantities || "").toString().split(",").map(q => q.trim());
+  const qtys = (data.menu_quantities || "").toString().split(",").map(q => q.trim());
 
   const formattedItems = items.map((item, i) => {
     return `${item} x ${qtys[i] || "1"}`;
   }).join("\n");
 
   return `
-📞 New Order from ${data.first_name || "Customer"} (${data.phone_number || "unknown"})
+📞 New Order from ${data.customer_first_name || "Customer"} (${data.customer_phone || "unknown"})
 
-📦 Order Type: ${data.order_type || "N/A"}
-📍 Address: ${data.delivery_address || "N/A"} (${data.postcode || ""})
+📦 Order Type: ${data.delivery_or_collection || "N/A"}
+📍 Address: ${data.delivery_address || "N/A"} (${data.delivery_postcode || ""})
 🧾 Items:
 ${formattedItems || "None"}
 
 📝 Note: ${data.order_note || "None"}
 
-💰 Subtotal: £${data.subtotal_amount || "0.00"}
+💰 Subtotal: £${data.subtotal || "0.00"}
 🚚 Delivery Fee: £${data.delivery_fee || "0.00"}
-💳 Total: £${data.total_amount || "0.00"}
+💳 Total: £${data.total_price || "0.00"}
 `.trim();
 }
 
