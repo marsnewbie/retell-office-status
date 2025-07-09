@@ -2,6 +2,18 @@ const express = require("express");
 const router = express.Router();
 const { sendOrderEmail } = require("../services/email");
 
+// 如果你以后恢复签名校验，可取消注释
+// const crypto = require("crypto");
+// function verifySignature(req, secret) {
+//   const signature = req.headers["x-retell-signature"];
+//   const payload = req.rawBody;
+//   const expectedSignature = crypto
+//     .createHmac("sha256", secret)
+//     .update(payload)
+//     .digest("hex");
+//   return signature === expectedSignature;
+// }
+
 router.post("/order-confirmed", async (req, res) => {
   try {
     const { event_type, call_analysis } = req.body;
@@ -14,7 +26,7 @@ router.post("/order-confirmed", async (req, res) => {
 
     const data = call_analysis?.custom;
     if (!data) {
-      console.warn("⚠️ No custom data found in call_analysis object.");
+      console.warn("⚠️ No custom data in call_analysis object.");
       return res.status(200).send("No custom data.");
     }
 
@@ -23,9 +35,11 @@ router.post("/order-confirmed", async (req, res) => {
       return res.status(200).send("Order not confirmed.");
     }
 
+    // ✅ 打印收到的自定义字段
     console.log("📦 Order Data:");
     console.log(JSON.stringify(data, null, 2));
 
+    // ✅ 发送邮件
     await sendOrderEmail({
       customer_first_name: data.first_name,
       customer_phone: data.phone_number,
