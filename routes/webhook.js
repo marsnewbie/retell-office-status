@@ -16,22 +16,21 @@ const { sendOrderEmail } = require("../services/email");
 
 router.post("/order-confirmed", async (req, res) => {
   try {
-    const { event_type, event, call_analysis } = req.body;
-    const actualEvent = event_type || event;
+    const { event, call } = req.body;
 
     console.log("📥 Full webhook payload:");
     console.log(JSON.stringify(req.body, null, 2));
 
-    console.log("✅ Webhook event received:", actualEvent);
+    console.log("✅ Webhook event received:", event);
 
-    if (actualEvent !== "call_analysis") {
-      console.log("ℹ️ Not a call_analysis event, skipping.");
-      return res.status(200).send("Not a call_analysis event, skipping.");
+    if (event !== "call_analyzed") {
+      console.log("ℹ️ Not a call_analyzed event, skipping.");
+      return res.status(200).send("Not a call_analyzed event, skipping.");
     }
 
-    const data = call_analysis?.custom;
+    const data = call?.call_analysis?.custom;
     if (!data) {
-      console.warn("⚠️ No custom data in call_analysis object.");
+      console.warn("⚠️ No custom data in call_analysis.");
       return res.status(200).send("No custom data.");
     }
 
@@ -40,12 +39,14 @@ router.post("/order-confirmed", async (req, res) => {
       return res.status(200).send("Order not confirmed.");
     }
 
+    const fromNumber = call?.from_number || "unknown";
+
     console.log("📦 Order Data:");
     console.log(JSON.stringify(data, null, 2));
+    console.log("📞 Caller Number:", fromNumber);
 
     await sendOrderEmail({
-      customer_first_name: data.first_name || "unknown",
-      customer_phone: data.phone_number || "",
+      from_number: fromNumber,
       delivery_or_collection: data.order_type || "N/A",
       delivery_address: data.delivery_address || "",
       delivery_postcode: data.postcode || "",
