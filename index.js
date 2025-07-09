@@ -2,22 +2,27 @@ const express = require("express");
 const { DateTime } = require("luxon");
 const app = express();
 const port = process.env.PORT || 8080;
+const bodyParser = require("body-parser");
 
-// ✅ JSON body parser
-app.use(express.json());
+// ✅ 捕获原始 body 用于 Retell 签名验证
+app.use(bodyParser.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();  // 👈 rawBody 用于 crypto HMAC
+  }
+}));
 
 // ✅ 店铺营业时间配置
 const storeHours = {
   lanternhouse: {
     timezone: "Europe/London",
     hours: {
-      0: { open: "17:00", close: "23:30" }, // Sunday
-      1: null,                              // Monday closed
-      2: { open: "11:00", close: "22:00" }, // Tuesday
-      3: { open: "17:00", close: "22:30" }, // Wednesday
-      4: { open: "17:00", close: "22:30" }, // Thursday
-      5: { open: "16:00", close: "23:30" }, // Friday
-      6: { open: "16:00", close: "23:30" }  // Saturday
+      0: { open: "17:00", close: "23:30" },
+      1: null,
+      2: { open: "11:00", close: "22:00" },
+      3: { open: "17:00", close: "22:30" },
+      4: { open: "17:00", close: "22:30" },
+      5: { open: "16:00", close: "23:30" },
+      6: { open: "16:00", close: "23:30" }
     }
   },
   fuhua: {
