@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
-
-// ✅ 引入发送邮件逻辑
 const { sendOrderEmail } = require("../services/email");
 
-// const crypto = require("crypto"); // 如果未来要启用签名校验再打开
+// const crypto = require("crypto"); // 暂时不启用签名校验
 
-// // ✅ 签名校验函数（预留）
+// // 如果后续需要启用签名校验，请取消注释：
 // function verifySignature(req, secret) {
 //   const signature = req.headers["x-retell-signature"];
 //   const payload = req.rawBody;
@@ -26,20 +24,15 @@ router.post("/order-confirmed", async (req, res) => {
     // }
 
     const { event, call } = req.body;
-
-    if (!event || !call) {
-      console.warn("⚠️ Missing 'event' or 'call' in request body.");
-      return res.status(400).send("Missing data.");
-    }
-
     console.log("✅ Webhook event received:", event);
 
-    if (event !== "call_ended") {
-      console.log("ℹ️ Not a call_ended event, skipping.");
-      return res.status(200).send("Not a call_ended event.");
+    // ✅ 支持 call_ended 和 call_analyzed 两种类型
+    if (!["call_ended", "call_analyzed"].includes(event)) {
+      console.log("ℹ️ Not a relevant event, skipping.");
+      return res.status(200).send("Not a relevant event, skipping.");
     }
 
-    const data = call.custom;
+    const data = call?.custom;
     if (!data) {
       console.warn("⚠️ No custom data in call object.");
       return res.status(200).send("No custom data.");
@@ -47,15 +40,15 @@ router.post("/order-confirmed", async (req, res) => {
 
     if (data.order_confirmed !== true) {
       console.log("ℹ️ Order not confirmed, skipping.");
-      return res.status(200).send("Order not confirmed.");
+      return res.status(200).send("Order not confirmed, skipping.");
     }
 
-    // ✅ 打印所有字段以便调试
+    // ✅ 日志展示完整订单数据
     console.log("📦 Order Data Received:");
     console.log(JSON.stringify(data, null, 2));
 
-    // ✅ 构建邮件内容并发送
-    console.log("📨 Sending email...");
+    // ✅ 调用发邮件函数
+    console.log("📨 Sending order email...");
     await sendOrderEmail({
       customer_first_name: data.first_name,
       customer_phone: data.phone_number,
@@ -69,11 +62,11 @@ router.post("/order-confirmed", async (req, res) => {
       total_price: data.total_amount
     });
 
-    console.log("✅ Email sent successfully.");
-    res.status(200).send("Email sent.");
+    console.log("✅ Email sent.");
+    res.status(200).send("Email sent");
   } catch (err) {
-    console.error("❌ Error in webhook:", err);
-    res.status(500).send("Internal error, but acknowledged.");
+    console.error("❌ Error during webhook processing:", err);
+    res.status(200).send("Error occurred, but acknowledged.");
   }
 });
 
