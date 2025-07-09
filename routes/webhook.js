@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
+
+// ✅ 引入发送邮件逻辑
 const { sendOrderEmail } = require("../services/email");
 
-// const crypto = require("crypto"); // 暂时不使用签名验证
+// const crypto = require("crypto"); // 如果未来要启用签名校验再打开
 
-// // ✅ 签名校验函数（若启用签名验证，可启用此段）
+// // ✅ 签名校验函数（预留）
 // function verifySignature(req, secret) {
 //   const signature = req.headers["x-retell-signature"];
 //   const payload = req.rawBody;
@@ -24,30 +26,36 @@ router.post("/order-confirmed", async (req, res) => {
     // }
 
     const { event, call } = req.body;
+
+    if (!event || !call) {
+      console.warn("⚠️ Missing 'event' or 'call' in request body.");
+      return res.status(400).send("Missing data.");
+    }
+
     console.log("✅ Webhook event received:", event);
 
     if (event !== "call_ended") {
       console.log("ℹ️ Not a call_ended event, skipping.");
-      return res.status(200).send("Not a call_ended event, skipping.");
+      return res.status(200).send("Not a call_ended event.");
     }
 
-    const data = call?.custom;
+    const data = call.custom;
     if (!data) {
-      console.warn("⚠️ No custom data found in call object.");
+      console.warn("⚠️ No custom data in call object.");
       return res.status(200).send("No custom data.");
     }
 
     if (data.order_confirmed !== true) {
       console.log("ℹ️ Order not confirmed, skipping.");
-      return res.status(200).send("Order not confirmed, skipping.");
+      return res.status(200).send("Order not confirmed.");
     }
 
-    // ✅ 日志打印所有字段用于排查
+    // ✅ 打印所有字段以便调试
     console.log("📦 Order Data Received:");
     console.log(JSON.stringify(data, null, 2));
 
-    // ✅ 发送邮件
-    console.log("📨 Sending order email...");
+    // ✅ 构建邮件内容并发送
+    console.log("📨 Sending email...");
     await sendOrderEmail({
       customer_first_name: data.first_name,
       customer_phone: data.phone_number,
@@ -61,11 +69,11 @@ router.post("/order-confirmed", async (req, res) => {
       total_price: data.total_amount
     });
 
-    console.log("✅ Email sent.");
-    res.status(200).send("Email sent");
+    console.log("✅ Email sent successfully.");
+    res.status(200).send("Email sent.");
   } catch (err) {
-    console.error("❌ Error during webhook processing:", err);
-    res.status(200).send("Error occurred, but acknowledged.");
+    console.error("❌ Error in webhook:", err);
+    res.status(500).send("Internal error, but acknowledged.");
   }
 });
 
