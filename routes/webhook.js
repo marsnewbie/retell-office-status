@@ -16,21 +16,21 @@ const { sendOrderEmail } = require("../services/email");
 
 router.post("/order-confirmed", async (req, res) => {
   try {
-    const { event, call } = req.body;
+    const { event_type, call_analysis } = req.body;
 
     console.log("📥 Full webhook payload:");
     console.log(JSON.stringify(req.body, null, 2));
 
-    console.log("✅ Webhook event received:", event);
+    console.log("✅ Webhook event_type received:", event_type);
 
-    if (event !== "call_analyzed") {
-      console.log("ℹ️ Not a call_analyzed event, skipping.");
-      return res.status(200).send("Not a call_analyzed event, skipping.");
+    if (event_type !== "call_analysis") {
+      console.log("ℹ️ Not a call_analysis event, skipping.");
+      return res.status(200).send("Not a call_analysis event, skipping.");
     }
 
-    const data = call?.custom;
+    const data = call_analysis?.custom;
     if (!data) {
-      console.warn("⚠️ No custom data in call object.");
+      console.warn("⚠️ No custom data in call_analysis object.");
       return res.status(200).send("No custom data.");
     }
 
@@ -64,3 +64,4 @@ router.post("/order-confirmed", async (req, res) => {
 });
 
 module.exports = router;
+
