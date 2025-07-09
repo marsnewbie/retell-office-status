@@ -43,16 +43,17 @@ router.post("/order-confirmed", async (req, res) => {
     console.log(JSON.stringify(data, null, 2));
 
     await sendOrderEmail({
-      customer_first_name: data.first_name,
-      customer_phone: data.phone_number,
-      delivery_or_collection: data.order_type,
-      delivery_address: data.delivery_address,
-      delivery_postcode: data.postcode,
-      menu_items: data.menu_items,
-      menu_quantities: data.quantities,
-      order_note: data.order_note,
-      subtotal: data.subtotal_amount,
-      total_price: data.total_amount
+      customer_first_name: data.first_name || "unknown",
+      customer_phone: data.phone_number || "",
+      delivery_or_collection: data.order_type || "N/A",
+      delivery_address: data.delivery_address || "",
+      delivery_postcode: data.postcode || "",
+      menu_items: data.menu_items || "",
+      menu_quantities: data.quantities || "",
+      order_note: data.order_note || "",
+      subtotal: data.subtotal_amount || 0,
+      delivery_fee: data.delivery_fee || 0,
+      total_price: data.total_amount || 0
     });
 
     console.log("✅ Email sent.");
@@ -64,4 +65,3 @@ router.post("/order-confirmed", async (req, res) => {
 });
 
 module.exports = router;
-
