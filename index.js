@@ -1,13 +1,13 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const { DateTime } = require("luxon");
 const app = express();
 const port = process.env.PORT || 8080;
-const bodyParser = require("body-parser");
 
-// ✅ 捕获原始 body 用于 Retell 签名验证
+// ✅ 捕获 rawBody 用于 Retell 签名验证
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
-    req.rawBody = buf.toString();  // 👈 rawBody 用于 crypto HMAC
+    req.rawBody = buf.toString();
   }
 }));
 
@@ -39,20 +39,18 @@ const storeHours = {
   }
 };
 
-// ✅ 是否营业逻辑
+// ✅ 判断当前时间是否在营业时段内
 function isOpenNow(currentTime, todayHours) {
   if (!todayHours) return false;
-
   const [oh, om] = todayHours.open.split(":").map(Number);
   const [ch, cm] = todayHours.close.split(":").map(Number);
   const openMinutes = oh * 60 + om;
   const closeMinutes = ch * 60 + cm;
   const nowMinutes = currentTime.hour * 60 + currentTime.minute;
-
   return nowMinutes >= openMinutes && nowMinutes <= closeMinutes;
 }
 
-// ✅ 主 handler
+// ✅ 主接口
 const handler = (req, res) => {
   const store = (req.query.store || "").toLowerCase();
   const storeData = storeHours[store];
@@ -68,7 +66,6 @@ const handler = (req, res) => {
   const office_status = isOpenNow(now, todayHours) ? "OPEN" : "CLOSED";
 
   console.log(`[Status Check] Store: ${store}, Time: ${now.toISO()}, Status: ${office_status}`);
-
   res.json({ office_status });
 };
 
@@ -97,7 +94,7 @@ const debugHandler = (req, res) => {
   });
 };
 
-// ✅ 注册路由
+// ✅ 路由注册
 app.get("/get-office-status", handler);
 app.post("/get-office-status", handler);
 app.get("/debug", debugHandler);
