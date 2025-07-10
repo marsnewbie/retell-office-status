@@ -1,0 +1,23 @@
+<pre style="font-family: monospace; font-size: 16px">
+🗒 <span style="font-size: 14px">Call Summary: {{call_summary}}</span>
+
+*** {{store_name}} ***
+Order Type: <b>{{order_type}}</b>
+Customer Name: {{first_name}}
+Address: {{delivery_address}}
+-------------------------------
+Item                   Qty   Price
+{{#each items_array}}
+{{pad this.name 22}}  <b>x{{this.qty}}</b>  ${{this.price}}
+{{/each}}
+-------------------------------
+Subtotal: ${{subtotal}}
+Delivery Fee: ${{delivery_fee}}
+Total: ${{total}}
+-------------------------------
+Thank you!
+{{#if note}}
+📝 Note: {{note}}
+{{/if}}
+📞 Incoming Call: {{from_number}}
+</pre>
