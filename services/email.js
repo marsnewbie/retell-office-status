@@ -3,6 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const handlebars = require("handlebars");
 
+// 注册格式对齐 helper
+handlebars.registerHelper("pad", function (str, len) {
+  str = str || "";
+  return str.padEnd(len, " ");
+});
+
 async function sendOrderEmail({ config, rawData, from_number }) {
   const user = config.email_from.user;
   const pass = process.env[config.email_from.pass_env];
@@ -18,14 +24,20 @@ async function sendOrderEmail({ config, rawData, from_number }) {
     mapped[key] = rawData[field] || "";
   }
 
-  mapped.from_number = from_number;
+  // ✅ 补充字段
+  mapped.store_name = config.store_name || "";
   mapped.call_summary = rawData.detailed_call_summary || "";
+  mapped.from_number = from_number;
 
+  // ✅ 构建 items_array（含价格）
   const items = (mapped.items || "").split(",").map(i => i.trim());
-  const qtys = (mapped.quantities || "").toString().split(",").map(q => q.trim());
+  const qtys = (mapped.quantities || "").split(",").map(q => q.trim());
+  const prices = (rawData.item_prices || "").split(",").map(p => p.trim());
+
   mapped.items_array = items.map((name, i) => ({
     name,
-    qty: qtys[i] || "1"
+    qty: qtys[i] || "1",
+    price: prices[i] ? `£${prices[i]}` : ""
   }));
 
   const templateFile = config.template || "default_template.hbs";
@@ -38,7 +50,7 @@ async function sendOrderEmail({ config, rawData, from_number }) {
     const source = fs.readFileSync(templatePath, "utf-8");
     const template = handlebars.compile(source);
     emailText = template(mapped);
-    emailHtml = emailText.replace(/\n/g, "<br>");
+    emailHtml = `<div style="font-family:monospace; font-size:16px; white-space:pre;">${emailText}</div>`;
   } else {
     emailText = fallbackTemplate(mapped);
     emailHtml = emailText.replace(/\n/g, "<br>");
@@ -65,7 +77,7 @@ async function sendOrderEmail({ config, rawData, from_number }) {
 
 function fallbackTemplate(d) {
   const lines = (d.items_array || []).map(i =>
-    `${i.name.padEnd(18)} x${i.qty}`
+    `${i.name.padEnd(22)} x${i.qty}  ${i.price || ""}`
   ).join("\n");
 
   return `
@@ -77,7 +89,7 @@ Customer Name: ${d.first_name || "N/A"}
 Phone Number: ${d.phone || "N/A"}
 Address: ${d.delivery_address || "N/A"}
 -----------------------------
-Item              Quantity
+Item                   Qty   Price
 ${lines || "No items"}
 -----------------------------
 Subtotal: £${d.subtotal || "0.00"}
