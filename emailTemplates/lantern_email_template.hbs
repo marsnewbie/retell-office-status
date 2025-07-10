@@ -1,22 +1,23 @@
-🗒 Call Summary: {{call_summary}}
+<pre style="font-family: monospace; font-size: 16px">
+🗒 <span style="font-size: 14px">Call Summary: {{call_summary}}</span>
 
 *** {{store_name}} ***
-Order Type: {{order_type}}
+Order Type: <b>{{order_type}}</b>
 Customer Name: {{first_name}}
-Phone Number: {{phone}}
 Address: {{delivery_address}}
------------------------------
-Item              Quantity
+-------------------------------
+Item                   Qty   Price
 {{#each items_array}}
-{{this.name}}     x{{this.qty}}
+{{pad this.name 22}}  <b>x{{this.qty}}</b>  {{this.price}}
 {{/each}}
------------------------------
+-------------------------------
 Subtotal: £{{subtotal}}
 Delivery Fee: £{{delivery_fee}}
 Total: £{{total}}
------------------------------
+-------------------------------
 Thank you!
 {{#if note}}
 📝 Note: {{note}}
 {{/if}}
 📞 Incoming Call: {{from_number}}
+</pre>
