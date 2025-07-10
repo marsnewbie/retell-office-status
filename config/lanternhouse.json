@@ -1,0 +1,19 @@
+{
+  "store_name": "Lantern House Takeaway",
+  "email_from": {
+    "user": "marsnewbie@gmail.com",
+    "pass_env": "MAIL_PASS"
+  },
+  "email_to": "marsnewbie6655@gmail.com",
+  "template": "lantern_email_template.hbs",
+  "field_mapping": {
+    "first_name": "first_name",
+    "phone": "phone_number",
+    "order_type": "order_type",
+    "items": "menu_items",
+    "quantities": "quantities",
+    "subtotal": "subtotal_amount",
+    "total": "total_amount",
+    "note": "order_note"
+  }
+}
