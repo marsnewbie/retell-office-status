@@ -1,0 +1,20 @@
+{
+  "store_name": "Fuhua Takeaway",
+  "agent_id": "agent_b13d9f0d6653c903d1c0764d23",
+  "email_from": {
+    "user": "marsnewbie@gmail.com",
+    "pass_env": "MAIL_PASS"
+  },
+  "email_to": "marsnewbie6655@gmail.com",
+  "template": "fuhua_email_template.hbs",
+  "field_mapping": {
+    "first_name": "first_name",
+    "phone": "phone_number",
+    "order_type": "order_type",
+    "items": "menu_items",
+    "quantities": "quantities",
+    "subtotal": "subtotal_amount",
+    "total": "total_amount",
+    "note": "order_note"
+  }
+}
