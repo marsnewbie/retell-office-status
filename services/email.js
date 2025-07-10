@@ -1,54 +1,99 @@
 const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
+const handlebars = require("handlebars");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS
+async function sendOrderEmail({ config, rawData, from_number }) {
+  // 发件人账号信息
+  const user = config.email_from.user;
+  const pass = process.env[config.email_from.pass_env];
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass }
+  });
+
+  // 字段映射（field_mapping）
+  const mapped = {};
+  const map = config.field_mapping || {};
+  for (const [key, field] of Object.entries(map)) {
+    mapped[key] = rawData[field] || "";
   }
-});
 
-function formatOrderEmail(data) {
-  const items = (data.menu_items || "").split(",").map(i => i.trim());
-  const qtys = (data.menu_quantities || "").toString().split(",").map(q => q.trim());
+  // 拼接额外字段
+  mapped.from_number = from_number;
+  mapped.call_summary = rawData.detailed_call_summary || "";
 
-  const formattedItems = items.map((item, i) => {
-    return `${item} x ${qtys[i] || "1"}`;
-  }).join("\n");
+  // 构建 items_array 给模板使用
+  const items = (mapped.items || "").split(",").map(i => i.trim());
+  const qtys = (mapped.quantities || "").toString().split(",").map(q => q.trim());
+  mapped.items_array = items.map((name, i) => ({
+    name,
+    qty: qtys[i] || "1"
+  }));
 
-  return `
-📞 New Order from ${data.from_number || "unknown"}
+  // 渲染模板
+  const templateFile = config.template || "default_template.hbs";
+  const templatePath = path.join(__dirname, "../emailTemplates", templateFile);
 
-📦 Order Type: ${data.delivery_or_collection || "N/A"}
-📍 Address: ${data.delivery_address || "N/A"} (${data.delivery_postcode || ""})
-🧾 Items:
-${formattedItems || "None"}
+  let emailText = "";
+  let emailHtml = "";
 
-📝 Note: ${data.order_note || "None"}
+  if (fs.existsSync(templatePath)) {
+    const source = fs.readFileSync(templatePath, "utf-8");
+    const template = handlebars.compile(source);
+    emailText = template(mapped);
+    emailHtml = emailText.replace(/\n/g, "<br>");
+  } else {
+    emailText = fallbackTemplate(mapped);
+    emailHtml = emailText.replace(/\n/g, "<br>");
+  }
 
-💰 Subtotal: £${data.subtotal || "0.00"}
-🚚 Delivery Fee: £${data.delivery_fee || "0.00"}
-💳 Total: £${data.total_price || "0.00"}
-`.trim();
-}
-
-async function sendOrderEmail(data) {
   const mailOptions = {
-    from: '"AI Order Bot" <marsnewbie@gmail.com>',
-    to: "marsnewbie6655@gmail.com", // ✅ 可换成门店邮箱
-    subject: "📦 New Order Received",
-    text: formatOrderEmail(data)
+    from: `"AI Order Bot" <${user}>`,
+    to: config.email_to,
+    subject: `📦 New Order from ${config.store_name}`,
+    text: emailText,
+    html: emailHtml
   };
 
-  console.log("📨 Attempting to send email...");
-  console.log("📨 Email preview:\n", mailOptions.text);
+  console.log("📨 Sending email for store:", config.store_name);
+  console.log("📨 Preview:\n", emailText);
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent successfully:", info.response);
+    console.log("✅ Email sent:", info.response);
   } catch (err) {
     console.error("❌ Failed to send email:", err);
   }
+}
+
+// fallback 模板（英文格式）
+function fallbackTemplate(d) {
+  const lines = (d.items_array || []).map(i =>
+    `${i.name.padEnd(18)} x${i.qty}`
+  ).join("\n");
+
+  return `
+🗒 Call Summary: ${d.call_summary || ""}
+
+*** ${d.store_name || "New Order"} ***
+Order Type: ${d.order_type || "N/A"}
+Customer Name: ${d.first_name || "N/A"}
+Phone Number: ${d.phone || "N/A"}
+Address: ${d.delivery_address || "N/A"}
+-----------------------------
+Item              Quantity
+${lines || "No items"}
+-----------------------------
+Subtotal: £${d.subtotal || "0.00"}
+Delivery Fee: £${d.delivery_fee || "0.00"}
+Total: £${d.total || "0.00"}
+-----------------------------
+Thank you!
+${d.note ? "📝 Note: " + d.note : ""}
+📞 Incoming Call: ${d.from_number || "N/A"}
+`.trim();
 }
 
 module.exports = { sendOrderEmail };
