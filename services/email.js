@@ -37,7 +37,7 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.items_array = items.map((name, i) => ({
     name,
     qty: qtys[i] || "1",
-    price: prices[i] ? `£${prices[i]}` : ""
+    price: prices[i] ? `${prices[i]}` : ""
   }));
 
   const templateFile = config.template || "default_template.hbs";
