@@ -1,22 +1,22 @@
-🗒 通话摘要：{{call_summary}}
+🗒 Call Summary: {{call_summary}}
 
 *** {{store_name}} ***
-订单类型：{{order_type}}
-顾客姓名：{{first_name}}
-电话号码：{{phone}}
-地址：{{delivery_address}}
+Order Type: {{order_type}}
+Customer Name: {{first_name}}
+Phone Number: {{phone}}
+Address: {{delivery_address}}
 -----------------------------
-菜品            数量
+Item              Quantity
 {{#each items_array}}
 {{this.name}}     x{{this.qty}}
 {{/each}}
 -----------------------------
-小计：£{{subtotal}}
-外送费：£{{delivery_fee}}
-合计：£{{total}}
+Subtotal: £{{subtotal}}
+Delivery Fee: £{{delivery_fee}}
+Total: £{{total}}
 -----------------------------
 Thank you!
 {{#if note}}
-📝 备注：{{note}}
+📝 Note: {{note}}
 {{/if}}
-📞 来电号码：{{from_number}}
+📞 Incoming Call: {{from_number}}
