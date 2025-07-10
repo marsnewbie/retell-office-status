@@ -8,7 +8,7 @@ Address: {{delivery_address}}
 -------------------------------
 Item                   Qty   Price
 {{#each items_array}}
-{{pad this.name 22}}  <b>x{{this.qty}}</b>  {{this.price}}
+{{pad this.name 22}}  <b>x{{this.qty}}</b>  £{{this.price}}
 {{/each}}
 -------------------------------
 Subtotal: £{{subtotal}}
