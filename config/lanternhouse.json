@@ -1,5 +1,6 @@
 {
   "store_name": "Lantern House Takeaway",
+  "agent_id": "agent_b13d9f0d6653c903d1c0764d23",
   "email_from": {
     "user": "marsnewbie@gmail.com",
     "pass_env": "MAIL_PASS"
