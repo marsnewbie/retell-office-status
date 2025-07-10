@@ -1,50 +1,59 @@
 const express = require("express");
-const router  = express.Router();
+const router = express.Router();
+const fs = require("fs");
+const path = require("path");
 const { sendOrderEmail } = require("../services/email");
 
 router.post("/order-confirmed", async (req, res) => {
   try {
     const { event, call } = req.body;
     const fromNumber = call?.from_number || "unknown";
+    const agentId = call?.agent_id || "";
 
-    // ★ 唯一有效路径：call.call_analysis.custom_analysis_data
-    const analysis = call?.call_analysis?.custom_analysis_data || {};
-    // 其他旧路径若将来需要可取消注释
-    // const analysis = call?.call_analysis?.custom ||
-    //                  call?.call_analysis?.custom_analysis_data ||
-    //                  call?.custom_analysis_data || {};
-
-    // ── 关键日志 ──
-    console.log("✅ Webhook event:", event);
-    console.log("📞 From number:", fromNumber);
-    console.log("📦 Order confirmed:", analysis.order_confirmed);
-    console.log("📋 Items:", analysis.menu_items);
-
-    // 只处理 call_analyzed
+    // ★ 只处理 call_analyzed 类型
     if (event !== "call_analyzed") {
       return res.status(200).send("Skipped – not call_analyzed");
     }
 
-    // 未确认订单则跳过
+    // ★ 结构化分析数据路径
+    const analysis = call?.call_analysis?.custom_analysis_data || {};
+    if (!analysis || typeof analysis !== "object") {
+      console.log("❌ Missing call_analysis.custom_analysis_data");
+      return res.status(400).send("Missing analysis data");
+    }
+
     if (analysis.order_confirmed !== true) {
+      console.log("ℹ️ Skipped – order not confirmed");
       return res.status(200).send("Skipped – order not confirmed");
     }
 
-    // 发送邮件
+    // ───────────── 加载商家 config 列表并匹配 agent_id ─────────────
+    const configDir = path.join(__dirname, "../config");
+    const configFiles = fs.readdirSync(configDir).filter(f => f.endsWith(".json"));
+
+    let matchedConfig = null;
+    for (const file of configFiles) {
+      const fullPath = path.join(configDir, file);
+      const config = JSON.parse(fs.readFileSync(fullPath, "utf-8"));
+      if (config.agent_id === agentId) {
+        matchedConfig = config;
+        break;
+      }
+    }
+
+    if (!matchedConfig) {
+      console.log(`❌ No config matched agent_id: ${agentId}`);
+      return res.status(404).send("No matching store config");
+    }
+
+    // ───────────── 发邮件 ─────────────
     await sendOrderEmail({
-      from_number:            fromNumber,
-      delivery_or_collection: analysis.order_type        || "N/A",
-      delivery_address:       analysis.delivery_address || "",
-      delivery_postcode:      analysis.postcode         || "",
-      menu_items:             analysis.menu_items       || "",
-      menu_quantities:        analysis.quantities       || "",
-      order_note:             analysis.order_note       || "",
-      subtotal:               analysis.subtotal_amount  || 0,
-      delivery_fee:           analysis.delivery_fee     || 0,
-      total_price:            analysis.total_amount     || 0
+      config: matchedConfig,
+      rawData: analysis,
+      from_number: fromNumber,
     });
 
-    console.log("✅ Email sent.");
+    console.log(`✅ Email sent for store: ${matchedConfig.store_name}`);
     res.status(200).send("Email sent");
   } catch (err) {
     console.error("❌ Error in webhook handler:", err);
