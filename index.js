@@ -16,7 +16,7 @@ const storeHours = {
   lanternhouse: {
     timezone: "Europe/London",
     hours: {
-      0: { open: "17:00", close: "23:30" },
+      0: { open: "11:00", close: "23:30" },
       1: null,
       2: { open: "11:00", close: "22:00" },
       3: { open: "11:00", close: "22:30" },
