@@ -1,9 +1,9 @@
-
 const Redis = require("ioredis");
 
 let redisClient;
 if (process.env.REDIS_URL) {
-  redisClient = new Redis(process.env.REDIS_URL);
+  // ✅ 强制启用 dual stack（IPv4 + IPv6）避免 railway.internal 无法解析
+  redisClient = new Redis(process.env.REDIS_URL + "?family=0");
   console.log("✅ Connected to Redis");
 } else {
   console.warn("⚠️ No REDIS_URL found. Using in-memory fallback.");
