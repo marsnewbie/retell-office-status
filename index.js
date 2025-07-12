@@ -107,8 +107,11 @@ app.get("/debug", debugHandler);
 const webhookRoutes = require("./routes/webhook");
 app.use("/webhook", webhookRoutes);
 
+// ✅ 注册打印轮询路由（打印客户端将轮询此接口）
+const pollRoutes = require("./routes/poll");
+app.use(pollRoutes);
+
 // ✅ 启动服务
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
-
