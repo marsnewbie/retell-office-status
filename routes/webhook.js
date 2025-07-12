@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const { sendOrderEmail } = require("../services/email");
+const { setOrder } = require("../services/orderCache");
 
 router.post("/order-confirmed", async (req, res) => {
   try {
@@ -35,6 +36,7 @@ router.post("/order-confirmed", async (req, res) => {
     }
 
     const matchedConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    const map = matchedConfig.field_mapping || {};
 
     // ───────────── 发邮件 ─────────────
     await sendOrderEmail({
@@ -44,7 +46,31 @@ router.post("/order-confirmed", async (req, res) => {
     });
 
     console.log(`✅ Email sent for store: ${matchedConfig.store_name}`);
-    res.status(200).send("Email sent");
+
+    // ───────────── 保存订单到缓存 ─────────────
+    const mapped = {};
+    for (const [key, field] of Object.entries(map)) {
+      mapped[key] = analysis[field] || "";
+    }
+
+    await setOrder(store, {
+      store_name: matchedConfig.store_name,
+      order_type: mapped.order_type,
+      first_name: mapped.first_name,
+      delivery_address: analysis.delivery_address || "",
+      menu_items: mapped.items,
+      quantities: mapped.quantities,
+      subtotal: mapped.subtotal,
+      delivery_fee: analysis.delivery_fee || "0.00",
+      total: mapped.total,
+      note: mapped.note,
+      from_number: fromNumber,
+      call_summary: analysis.detailed_call_summary || ""
+    });
+
+    console.log(`🧾 Order cached for store: ${store}`);
+
+    res.status(200).send("Email + cache success");
   } catch (err) {
     console.error("❌ Error in webhook handler:", err);
     res.status(200).send("Error but acknowledged.");
