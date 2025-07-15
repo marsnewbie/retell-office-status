@@ -6,9 +6,12 @@ Order Type: <b>{{order_type}}</b>
 Customer Name: {{first_name}}
 Address: {{delivery_address}}
 -------------------------------
-Item                   Qty   Price
+Item                          Qty   Price
 {{#each items_array}}
 {{pad this.name 30}}  <b>x{{this.qty}}</b>  ${{this.price}}
+{{#if this.note}}
+{{pad this.note 30}}
+{{/if}}
 {{/each}}
 -------------------------------
 Subtotal: ${{subtotal}}
