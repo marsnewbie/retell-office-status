@@ -30,7 +30,7 @@ const storeHours = {
     hours: {
       0: { open: "11:00", close: "23:59" },
       1: { open: "11:00", close: "23:59" },
-      2: { open: "16:00", close: "23:59" },
+      2: { open: "11:00", close: "23:59" },
       3: { open: "11:00", close: "23:59" },
       4: { open: "11:00", close: "23:59" },
       5: { open: "11:00", close: "23:59" },
