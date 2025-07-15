@@ -18,9 +18,9 @@ const storeHours = {
     hours: {
       0: { open: "11:00", close: "23:30" },
       1: null,
-      2: { open: "11:00", close: "22:00" },
-      3: { open: "11:00", close: "22:30" },
-      4: { open: "11:00", close: "22:30" },
+      2: { open: "11:00", close: "23:00" },
+      3: { open: "11:00", close: "23:30" },
+      4: { open: "11:00", close: "23:30" },
       5: { open: "11:00", close: "23:30" },
       6: { open: "11:00", close: "23:30" }
     }
@@ -31,7 +31,7 @@ const storeHours = {
       0: { open: "11:00", close: "23:59" },
       1: { open: "11:00", close: "23:59" },
       2: { open: "11:00", close: "23:59" },
-      3: { open: "11:00", close: "23:59" },
+      3: { open: "00:30", close: "23:59" },
       4: { open: "11:00", close: "23:59" },
       5: { open: "11:00", close: "23:59" },
       6: { open: "11:00", close: "23:59" }
