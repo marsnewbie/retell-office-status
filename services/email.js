@@ -29,8 +29,12 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.call_summary = rawData.detailed_call_summary || "";
   mapped.from_number = from_number;
 
-  // ✅ 构建 items_array（含价格）
-  const items = (mapped.items || "").split(",").map(i => i.trim());
+  // ✅ 构建 items_array（含价格）—— 优先用 menu_items_with_notes
+  const rawItems = mapped.items_with_notes || mapped.items || "";
+  const items = rawItems
+    .split(/[,;\n]/)       // 逗号 / 分号 / 换行都可分割
+    .map(i => i.trim())
+    .filter(Boolean);
   const qtys = (mapped.quantities || "").split(",").map(q => q.trim());
   const prices = (rawData.item_prices || "").split(",").map(p => p.trim());
 
