@@ -34,31 +34,26 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   /* ─────────── 3. 构建 items_array ─────────── */
   const rawItems = (mapped.items_with_notes || mapped.items || "").trim();
 
-  // 分割：换行 / 分号 / “括号外”的逗号
+  // 分割菜单项：换行 / 分号 / “括号外”的逗号
   const items = rawItems
-    .split(/\n|;(?![^()]*\))|,(?![^()]*\))/)  // 逗号在括号内不会被切
-    .map(i => i.trim())
+    .split(/\n|;(?![^()]*\))|,(?![^()]*\))/) // 括号内逗号不切
+    .map(s => s.trim())
     .filter(Boolean);
 
-  const qtys   = (mapped.quantities || "").split(",").map(q => q.trim());
-  const prices = (rawData.item_prices   || "").split(",").map(p => p.trim());
-
-  // 补齐长度，防止索引错位
-  const maxLen = Math.max(items.length, qtys.length, prices.length);
-  while (items.length   < maxLen) items.push(items[items.length-1]   || "");
-  while (qtys.length    < maxLen) qtys.push(qtys[qtys.length-1]     || "1");
-  while (prices.length  < maxLen) prices.push(prices[prices.length-1] || "");
+  const qtys   = (mapped.quantities   || "").split(",").map(s => s.trim());
+  const prices = (rawData.item_prices || "").split(",").map(s => s.trim());
 
   mapped.items_array = items.map((raw, i) => {
-    // 拆：主菜名 + 备注
-    const m    = raw.match(/\(([^)]+)\)$/);      // 捕获最后一对括号
+    // 拆分 主菜名 + 括号备注
+    const m    = raw.match(/\(([^)]+)\)$/);
     const name = m ? raw.replace(/\s*\([^)]+\)$/, "").trim() : raw;
     const note = m ? `(${m[1]})` : "";
+
     return {
       name,
-      note,                    // 备注行（可能为空）
-      qty:   qtys[i]   || "1",
-      price: prices[i] || ""
+      note,
+      qty:   qtys[i]   || "1",   // i超界默认1
+      price: prices[i] || ""     // i超界留空
     };
   });
 
