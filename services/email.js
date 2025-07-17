@@ -22,6 +22,12 @@ handlebars.registerHelper("rightAlign", function (str, width) {
   return " ".repeat(pad) + str;
 });
 
+// 提取括号备注（如 "(no salad, no sauce)" => "no salad, no sauce"）
+const parseNotesFromBracket = (notesStr = "") => {
+  const matches = notesStr.match(/\([^\)]+\)/g) || [];
+  return matches.map(n => n.replace(/[()]/g, "").trim());
+};
+
 async function sendOrderEmail({ config, rawData, from_number }) {
   const user = config.email_from.user;
   const pass = process.env[config.email_from.pass_env];
@@ -53,12 +59,10 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   const qtys          = quantitiesRaw.split(",").map(s => s.trim());
   const prices        = itemPricesRaw.split(",").map(s => s.trim());
   const optionsPrices = optionsPricesRaw.split(";").map(s => s.trim());
-  const notes         = notesRaw.split(",").map(s => s.trim());
+  const notes         = parseNotesFromBracket(notesRaw);
 
   mapped.items_array = items.map((name, i) => {
-    const note = notes[i] || "";
-    const match = note.match(/\((.*?)\)/); // 括号中的内容
-    const extras = match ? match[1].trim() : "";
+    const extras = notes[i] || "";
     return {
       name,
       qty: qtys[i] || "1",
