@@ -15,6 +15,7 @@
     "subtotal": "subtotal_amount",
     "total": "total_amount",
     "items_with_notes": "menu_items_with_notes",
-    "note": "order_note"
+    "item_options": "item_options",
+    "item_options_price": "item_options_price"
   }
 }
