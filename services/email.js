@@ -23,7 +23,6 @@ handlebars.registerHelper("rightAlign", function (str, width) {
 });
 
 async function sendOrderEmail({ config, rawData, from_number }) {
-  /* ─────────── 1. 邮件账号 ─────────── */
   const user = config.email_from.user;
   const pass = process.env[config.email_from.pass_env];
 
@@ -32,42 +31,40 @@ async function sendOrderEmail({ config, rawData, from_number }) {
     auth: { user, pass }
   });
 
-  /* ─────────── 2. 字段映射 ─────────── */
+  // ─────────── 字段映射 ───────────
   const mapped = {};
   const map = config.field_mapping || {};
   for (const [key, field] of Object.entries(map)) {
     mapped[key] = rawData[field] ?? "";
   }
 
-  /* 额外字段 */
-  mapped.store_name   = config.store_name || "";
-  mapped.call_summary = (rawData.summary || rawData.detailed_call_summary || "").trim();
-  mapped.from_number  = from_number;
-  mapped.item_options = String(rawData.item_options || "");
-  mapped.item_options_price = String(rawData.item_options_price || "");
-  const itemPricesRaw = String(rawData.item_prices || "");
-  const notes = String(rawData.menu_items_with_notes || "").split(",").map(s => s.trim());
+  mapped.store_name    = config.store_name || "";
+  mapped.call_summary  = (rawData.summary || rawData.detailed_call_summary || "").trim();
+  mapped.from_number   = from_number;
 
-  /* ─────────── 3. 构建 items_array ─────────── */
-  const rawItems = String(mapped.items || "").trim();
-  const items = rawItems.split(",").map(s => s.trim()).filter(Boolean);
-  const qtys  = String(mapped.quantities || "").split(",").map(s => s.trim());
-  const prices = itemPricesRaw.split(",").map(s => s.trim());
-  const extrasPrices = mapped.item_options_price.split(";").map(s => s.trim());
+  const itemPricesRaw      = String(rawData.item_prices || "");
+  const optionsPricesRaw   = String(mapped.item_options_price || "");
+  const notesRaw           = String(mapped.items_with_notes || "");
+
+  const items      = String(mapped.items || "").split(",").map(s => s.trim()).filter(Boolean);
+  const qtys       = String(mapped.quantities || "").split(",").map(s => s.trim());
+  const prices     = itemPricesRaw.split(",").map(s => s.trim());
+  const optionsPrices = optionsPricesRaw.split(";").map(s => s.trim());
+  const notes      = notesRaw.split(",").map(s => s.trim());
 
   mapped.items_array = items.map((name, i) => {
     const note = notes[i] || "";
-    const extras = (note.match(/\((.*?)\)/)?.[1] || "").trim(); // 提取括号内容
+    const extras = (note.match(/\((.*?)\)/)?.[1] || "").trim();  // 括号内容
     return {
       name,
       qty: qtys[i] || "1",
       price: prices[i] || "",
-      extras: extras,
-      extras_price: extrasPrices[i] || ""
+      extras,
+      extras_price: optionsPrices[i] || ""
     };
   });
 
-  /* ─────────── 4. 渲染模板 ─────────── */
+  // ─────────── 渲染模板 ───────────
   const templateFile = config.template || "default_template.hbs";
   const templatePath = path.join(__dirname, "../emailTemplates", templateFile);
 
@@ -84,13 +81,13 @@ async function sendOrderEmail({ config, rawData, from_number }) {
     emailHtml = emailText.replace(/\n/g, "<br>");
   }
 
-  /* ─────────── 5. 发送邮件 ─────────── */
+  // ─────────── 发送邮件 ───────────
   const mailOptions = {
-    from:    `"AI Order Bot" <${user}>`,
-    to:      config.email_to,
+    from: `"AI Order Bot" <${user}>`,
+    to: config.email_to,
     subject: `📦 New Order from ${config.store_name}`,
-    text:    emailText,
-    html:    emailHtml
+    text: emailText,
+    html: emailHtml
   };
 
   console.log("📨 Sending email for store:", config.store_name);
@@ -104,7 +101,7 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   }
 }
 
-/* ─────────── 备用纯文本模板 ─────────── */
+// ─────────── fallback 模板 ───────────
 function fallbackTemplate(d) {
   const lines = (d.items_array || []).map(i => {
     const line1 = `${i.name.padEnd(30)} x${i.qty}  $${i.price}`;
