@@ -60,6 +60,8 @@ router.post("/order-confirmed", async (req, res) => {
       delivery_address: analysis.delivery_address || "",
       menu_items: mapped.items,
       menu_items_with_notes: mapped.items_with_notes,
+      item_options: mapped.item_options,
+      item_options_price: mapped.item_options_price,
       quantities: mapped.quantities,
       subtotal: mapped.subtotal,
       delivery_fee: analysis.delivery_fee || "0.00",
