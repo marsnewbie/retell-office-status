@@ -27,33 +27,28 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   }
 
   /* 额外字段 */
-  mapped.store_name   = config.store_name || "";
-  mapped.call_summary = rawData.detailed_call_summary || "";
-  mapped.from_number  = from_number;
+  mapped.store_name    = config.store_name || "";
+  mapped.call_summary  = rawData.detailed_call_summary || "";
+  mapped.from_number   = from_number;
+  mapped.item_options  = rawData.item_options || "";
+  mapped.item_options_price = rawData.item_options_price || "";
 
   /* ─────────── 3. 构建 items_array ─────────── */
-  const rawItems = (mapped.items_with_notes || mapped.items || "").trim();
+  const rawItems = (mapped.items || "").trim();
 
-  // 分割菜单项：换行 / 分号 / “括号外”的逗号
-  const items = rawItems
-    .split(/\n|;(?![^()]*\))|,(?![^()]*\))/) // 括号内逗号不切
-    .map(s => s.trim())
-    .filter(Boolean);
-
+  const items  = rawItems.split(",").map(s => s.trim()).filter(Boolean);
   const qtys   = (mapped.quantities   || "").split(",").map(s => s.trim());
   const prices = (rawData.item_prices || "").split(",").map(s => s.trim());
+  const extras = (mapped.item_options || "").split(";").map(s => s.trim());
+  const extrasPrices = (mapped.item_options_price || "").split(";").map(s => s.trim());
 
-  mapped.items_array = items.map((raw, i) => {
-    // 拆分 主菜名 + 括号备注
-    const m    = raw.match(/\(([^)]+)\)$/);
-    const name = m ? raw.replace(/\s*\([^)]+\)$/, "").trim() : raw;
-    const note = m ? `(${m[1]})` : "";
-
+  mapped.items_array = items.map((name, i) => {
     return {
       name,
-      note,
-      qty:   qtys[i]   || "1",   // i超界默认1
-      price: prices[i] || ""     // i超界留空
+      qty: qtys[i] || "1",
+      price: prices[i] || "",
+      extras: extras[i] || "",
+      extras_price: extrasPrices[i] || ""
     };
   });
 
@@ -98,8 +93,8 @@ async function sendOrderEmail({ config, rawData, from_number }) {
 function fallbackTemplate(d) {
   const lines = (d.items_array || []).map(i => {
     const line1 = `${i.name.padEnd(30)} x${i.qty}  $${i.price}`;
-    const line2 = i.note ? `\n${i.note}` : "";
-    return line1 + line2;
+    const line2 = i.extras ? `(${i.extras})`.padEnd(30) + ` $${i.extras_price}` : "";
+    return line1 + (line2 ? `\n${line2}` : "");
   }).join("\n");
 
   return `
@@ -119,7 +114,6 @@ Delivery Fee: $${d.delivery_fee || "0.00"}
 Total: $${d.total || "0.00"}
 -----------------------------
 Thank you!
-${d.note ? "📝 Note: " + d.note : ""}
 📞 Incoming Call: ${d.from_number || "N/A"}
 `.trim();
 }
