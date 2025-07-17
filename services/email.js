@@ -15,7 +15,7 @@ handlebars.registerHelper("concat", function (...args) {
   return args.join("");
 });
 
-// 右对齐 helper：{{rightAlign "$2.40" 6}} => " $2.40"
+// 右对齐 helper：{{rightAlign "$2.40" 6}} => "  $2.40"
 handlebars.registerHelper("rightAlign", function (str, width) {
   str = str || "";
   const pad = Math.max(width - str.length, 0);
@@ -42,21 +42,23 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.call_summary  = (rawData.summary || rawData.detailed_call_summary || "").trim();
   mapped.from_number   = from_number;
 
-  // 解析字段
+  // 字段解析（所有字段都确保为字符串）
+  const itemsRaw         = String(mapped.items || "");
+  const quantitiesRaw    = String(mapped.quantities || "");
   const itemPricesRaw    = String(rawData.item_prices || "");
   const optionsPricesRaw = String(mapped.item_options_price || "");
-  const notesRaw         = String(mapped.items_with_notes || "");
+  const notesRaw         = String(mapped["items_with_notes"] || "");
 
-  const items         = String(mapped.items || "").split(",").map(s => s.trim()).filter(Boolean);
-  const qtys          = String(mapped.quantities || "").split(",").map(s => s.trim());
+  const items         = itemsRaw.split(",").map(s => s.trim()).filter(Boolean);
+  const qtys          = quantitiesRaw.split(",").map(s => s.trim());
   const prices        = itemPricesRaw.split(",").map(s => s.trim());
   const optionsPrices = optionsPricesRaw.split(";").map(s => s.trim());
   const notes         = notesRaw.split(",").map(s => s.trim());
 
   mapped.items_array = items.map((name, i) => {
     const note = notes[i] || "";
-    const match = note.match(/\((.*?)\)/);
-    const extras = match ? match[1].trim() : "";  // 提取括号内容
+    const match = note.match(/\((.*?)\)/); // 括号中的内容
+    const extras = match ? match[1].trim() : "";
     return {
       name,
       qty: qtys[i] || "1",
