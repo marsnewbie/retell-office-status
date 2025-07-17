@@ -42,19 +42,21 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.call_summary  = (rawData.summary || rawData.detailed_call_summary || "").trim();
   mapped.from_number   = from_number;
 
-  const itemPricesRaw      = String(rawData.item_prices || "");
-  const optionsPricesRaw   = String(mapped.item_options_price || "");
-  const notesRaw           = String(mapped.items_with_notes || "");
+  // 解析字段
+  const itemPricesRaw    = String(rawData.item_prices || "");
+  const optionsPricesRaw = String(mapped.item_options_price || "");
+  const notesRaw         = String(mapped.items_with_notes || "");
 
-  const items      = String(mapped.items || "").split(",").map(s => s.trim()).filter(Boolean);
-  const qtys       = String(mapped.quantities || "").split(",").map(s => s.trim());
-  const prices     = itemPricesRaw.split(",").map(s => s.trim());
+  const items         = String(mapped.items || "").split(",").map(s => s.trim()).filter(Boolean);
+  const qtys          = String(mapped.quantities || "").split(",").map(s => s.trim());
+  const prices        = itemPricesRaw.split(",").map(s => s.trim());
   const optionsPrices = optionsPricesRaw.split(";").map(s => s.trim());
-  const notes      = notesRaw.split(",").map(s => s.trim());
+  const notes         = notesRaw.split(",").map(s => s.trim());
 
   mapped.items_array = items.map((name, i) => {
     const note = notes[i] || "";
-    const extras = (note.match(/\((.*?)\)/)?.[1] || "").trim();  // 括号内容
+    const match = note.match(/\((.*?)\)/);
+    const extras = match ? match[1].trim() : "";  // 提取括号内容
     return {
       name,
       qty: qtys[i] || "1",
