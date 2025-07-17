@@ -11,6 +11,11 @@ router.post("/order-confirmed", async (req, res) => {
     const fromNumber = call?.from_number || "unknown";
     const analysis = call?.call_analysis?.custom_analysis_data || {};
 
+    // ✅ 新增：补充 summary 字段（来自 call.summary）
+    if (call.summary) {
+      analysis.summary = call.summary;
+    }
+
     // ★ 只处理 call_analyzed 类型
     if (event !== "call_analyzed") {
       return res.status(200).send("Skipped – not call_analyzed");
@@ -68,7 +73,7 @@ router.post("/order-confirmed", async (req, res) => {
       total: mapped.total,
       note: mapped.note,
       from_number: fromNumber,
-      call_summary: analysis.detailed_call_summary || ""
+      call_summary: analysis.summary || analysis.detailed_call_summary || ""
     });
 
     console.log(`🧾 Order cached for store: ${store}`);
