@@ -10,7 +10,7 @@ Item                          Qty   Price
 {{#each items_array}}
 {{pad this.name 30}}  <b>x{{this.qty}}</b>  ${{this.price}}
 {{#if this.extras}}
-{{pad (concat "(" this.extras ")") 30}}  ${{this.extras_price}}
+{{pad (concat "(" this.extras ")") 28}}  ${{pad this.extras_price 5}}
 {{/if}}
 {{/each}}
 -------------------------------
