@@ -43,17 +43,17 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.store_name   = config.store_name || "";
   mapped.call_summary = (rawData.summary || rawData.detailed_call_summary || "").trim();
   mapped.from_number  = from_number;
-  mapped.item_options = rawData.item_options || "";
-  mapped.item_options_price = rawData.item_options_price ?? "";
+  mapped.item_options = String(rawData.item_options || "");
+  mapped.item_options_price = String(rawData.item_options_price || "");
+  const itemPricesRaw = String(rawData.item_prices || "");
 
   /* ─────────── 3. 构建 items_array ─────────── */
-  const rawItems = (mapped.items || "").trim();
-
-  const items        = rawItems.split(",").map(s => s.trim()).filter(Boolean);
-  const qtys         = String(mapped.quantities || "").split(",").map(s => s.trim());
-  const prices       = String(rawData.item_prices || "").split(",").map(s => s.trim());
-  const extras       = String(mapped.item_options || "").split(";").map(s => s.trim());
-  const extrasPrices = String(mapped.item_options_price || "").split(";").map(s => s.trim());
+  const rawItems = String(mapped.items || "").trim();
+  const items = rawItems.split(",").map(s => s.trim()).filter(Boolean);
+  const qtys  = String(mapped.quantities || "").split(",").map(s => s.trim());
+  const prices = itemPricesRaw.split(",").map(s => s.trim());
+  const extras = mapped.item_options.split(";").map(s => s.trim());
+  const extrasPrices = mapped.item_options_price.split(";").map(s => s.trim());
 
   mapped.items_array = items.map((name, i) => ({
     name,
