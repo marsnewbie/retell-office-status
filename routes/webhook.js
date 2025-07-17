@@ -58,6 +58,7 @@ router.post("/order-confirmed", async (req, res) => {
       mapped[key] = analysis[field] ?? "";
     }
 
+    // ✅ 强制转换为字符串，防止 Number 字段无法 .split 的错误
     await setOrder(store, {
       store_name: matchedConfig.store_name,
       order_type: mapped.order_type,
