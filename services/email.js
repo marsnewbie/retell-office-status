@@ -34,7 +34,7 @@ async function sendOrderEmail({ config, rawData, from_number }) {
 
   /* 额外字段 */
   mapped.store_name    = config.store_name || "";
-  mapped.call_summary  = rawData.detailed_call_summary || "";
+  mapped.call_summary  = (rawData.summary || rawData.detailed_call_summary || "").trim();
   mapped.from_number   = from_number;
   mapped.item_options  = rawData.item_options || "";
   mapped.item_options_price = rawData.item_options_price || "";
