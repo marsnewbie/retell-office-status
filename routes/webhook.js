@@ -75,8 +75,9 @@ router.post("/order-confirmed", async (req, res) => {
       total: mapped.total,
       note: mapped.note,
       from_number: fromNumber,
-      call_summary: analysis.summary || analysis.detailed_call_summary || ""
-    });
+      call_summary: analysis.summary || analysis.detailed_call_summary || "",
+  menu_summary: analysis.menu_summary || ""  // ✅ 新增字段
+});
 
     console.log(`🧾 Order cached for store: ${store}`);
     res.status(200).send("Email + cache success");
