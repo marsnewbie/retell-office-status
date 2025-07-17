@@ -15,6 +15,13 @@ handlebars.registerHelper("concat", function (...args) {
   return args.join("");
 });
 
+// 右对齐 helper：{{rightAlign "$2.40" 6}} => " $2.40"
+handlebars.registerHelper("rightAlign", function (str, width) {
+  str = str || "";
+  const pad = Math.max(width - str.length, 0);
+  return " ".repeat(pad) + str;
+});
+
 async function sendOrderEmail({ config, rawData, from_number }) {
   /* ─────────── 1. 邮件账号 ─────────── */
   const user = config.email_from.user;
