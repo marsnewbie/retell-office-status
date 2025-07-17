@@ -44,9 +44,10 @@ async function sendOrderEmail({ config, rawData, from_number }) {
     mapped[key] = rawData[field] ?? "";
   }
 
-  mapped.store_name    = config.store_name || "";
-  mapped.call_summary  = (rawData.summary || rawData.detailed_call_summary || "").trim();
-  mapped.from_number   = from_number;
+  mapped.store_name     = config.store_name || "";
+  mapped.call_summary   = (rawData.summary || rawData.detailed_call_summary || "").trim();
+  mapped.menu_summary   = rawData.menu_summary || ""; // ✅ 新增
+  mapped.from_number    = from_number;
 
   // 字段解析（所有字段都确保为字符串）
   const itemsRaw         = String(mapped.items || "");
@@ -119,6 +120,7 @@ function fallbackTemplate(d) {
 
   return `
 🗒 Call Summary: ${d.call_summary || ""}
+📋 Menu Summary: ${d.menu_summary || ""}
 
 *** ${d.store_name || "New Order"} ***
 Order Type: ${d.order_type || "N/A"}
