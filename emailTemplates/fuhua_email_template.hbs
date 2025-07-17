@@ -9,8 +9,8 @@ Address: {{delivery_address}}
 Item                          Qty   Price
 {{#each items_array}}
 {{pad this.name 30}}  <b>x{{this.qty}}</b>  ${{this.price}}
-{{#if this.note}}
-{{pad this.note 30}}
+{{#if this.extras}}
+{{pad (concat "(" this.extras ")") 30}}  <span style="color:red">${{this.extras_price}}</span>
 {{/if}}
 {{/each}}
 -------------------------------
@@ -19,8 +19,5 @@ Delivery Fee: ${{delivery_fee}}
 Total: ${{total}}
 -------------------------------
 Thank you!
-{{#if note}}
-📝 Note: {{note}}
-{{/if}}
 📞 Incoming Call: {{from_number}}
 </pre>
