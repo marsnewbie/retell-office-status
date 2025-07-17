@@ -9,6 +9,12 @@ handlebars.registerHelper("pad", function (str, len) {
   return str.padEnd(len, " ");
 });
 
+// 拼接 helper：{{concat a b}} => ab
+handlebars.registerHelper("concat", function (...args) {
+  args.pop();
+  return args.join("");
+});
+
 async function sendOrderEmail({ config, rawData, from_number }) {
   /* ─────────── 1. 邮件账号 ─────────── */
   const user = config.email_from.user;
