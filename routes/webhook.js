@@ -67,6 +67,7 @@ router.post("/order-confirmed", async (req, res) => {
       menu_items_with_notes: mapped.items_with_notes,
       item_options: mapped.item_options,
       item_options_price: mapped.item_options_price,
+      item_prices: analysis.item_prices || "", // ✅ 加入 item_prices
       quantities: mapped.quantities,
       subtotal: mapped.subtotal,
       delivery_fee: analysis.delivery_fee || "0.00",
@@ -77,7 +78,6 @@ router.post("/order-confirmed", async (req, res) => {
     });
 
     console.log(`🧾 Order cached for store: ${store}`);
-
     res.status(200).send("Email + cache success");
   } catch (err) {
     console.error("❌ Error in webhook handler:", err);
