@@ -8,9 +8,9 @@ Address: {{delivery_address}}
 -------------------------------
 Item                          Qty   Price
 {{#each items_array}}
-{{pad this.name 30}}  <b>x{{this.qty}}</b>  ${{this.price}}
+{{pad this.name 30}}  <b>x{{this.qty}}</b>  ${{pad this.price 6}}
 {{#if this.extras}}
-{{pad (concat "(" this.extras ")") 28}}  {{pad (concat "$" this.extras_price) 8}}
+{{pad (concat "(" this.extras ")") 30}}  ${{pad this.extras_price 6}}
 {{/if}}
 {{/each}}
 -------------------------------
