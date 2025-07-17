@@ -46,22 +46,26 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.item_options = String(rawData.item_options || "");
   mapped.item_options_price = String(rawData.item_options_price || "");
   const itemPricesRaw = String(rawData.item_prices || "");
+  const notes = String(rawData.menu_items_with_notes || "").split(",").map(s => s.trim());
 
   /* ─────────── 3. 构建 items_array ─────────── */
   const rawItems = String(mapped.items || "").trim();
   const items = rawItems.split(",").map(s => s.trim()).filter(Boolean);
   const qtys  = String(mapped.quantities || "").split(",").map(s => s.trim());
   const prices = itemPricesRaw.split(",").map(s => s.trim());
-  const extras = mapped.item_options.split(";").map(s => s.trim());
   const extrasPrices = mapped.item_options_price.split(";").map(s => s.trim());
 
-  mapped.items_array = items.map((name, i) => ({
-    name,
-    qty: qtys[i] || "1",
-    price: prices[i] || "",
-    extras: extras[i] || "",
-    extras_price: extrasPrices[i] || ""
-  }));
+  mapped.items_array = items.map((name, i) => {
+    const note = notes[i] || "";
+    const extras = (note.match(/\((.*?)\)/)?.[1] || "").trim(); // 提取括号内容
+    return {
+      name,
+      qty: qtys[i] || "1",
+      price: prices[i] || "",
+      extras: extras,
+      extras_price: extrasPrices[i] || ""
+    };
+  });
 
   /* ─────────── 4. 渲染模板 ─────────── */
   const templateFile = config.template || "default_template.hbs";
