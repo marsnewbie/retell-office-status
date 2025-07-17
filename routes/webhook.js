@@ -55,7 +55,7 @@ router.post("/order-confirmed", async (req, res) => {
     // ───────────── 保存订单到缓存 ─────────────
     const mapped = {};
     for (const [key, field] of Object.entries(map)) {
-      mapped[key] = analysis[field] || "";
+      mapped[key] = analysis[field] ?? "";
     }
 
     await setOrder(store, {
@@ -65,12 +65,12 @@ router.post("/order-confirmed", async (req, res) => {
       delivery_address: analysis.delivery_address || "",
       menu_items: mapped.items,
       menu_items_with_notes: mapped.items_with_notes,
-      item_options: mapped.item_options,
-      item_options_price: mapped.item_options_price,
-      item_prices: analysis.item_prices || "", // ✅ 加入 item_prices
+      item_options: String(mapped.item_options || ""),
+      item_options_price: String(mapped.item_options_price || ""),
+      item_prices: String(analysis.item_prices || ""),
       quantities: mapped.quantities,
       subtotal: mapped.subtotal,
-      delivery_fee: analysis.delivery_fee || "0.00",
+      delivery_fee: String(analysis.delivery_fee || "0.00"),
       total: mapped.total,
       note: mapped.note,
       from_number: fromNumber,
