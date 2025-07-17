@@ -36,34 +36,32 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   const mapped = {};
   const map = config.field_mapping || {};
   for (const [key, field] of Object.entries(map)) {
-    mapped[key] = rawData[field] || "";
+    mapped[key] = rawData[field] ?? "";
   }
 
   /* 额外字段 */
-  mapped.store_name    = config.store_name || "";
-  mapped.call_summary  = (rawData.summary || rawData.detailed_call_summary || "").trim();
-  mapped.from_number   = from_number;
-  mapped.item_options  = rawData.item_options || "";
-  mapped.item_options_price = rawData.item_options_price || "";
+  mapped.store_name   = config.store_name || "";
+  mapped.call_summary = (rawData.summary || rawData.detailed_call_summary || "").trim();
+  mapped.from_number  = from_number;
+  mapped.item_options = rawData.item_options || "";
+  mapped.item_options_price = rawData.item_options_price ?? "";
 
   /* ─────────── 3. 构建 items_array ─────────── */
   const rawItems = (mapped.items || "").trim();
 
-  const items  = rawItems.split(",").map(s => s.trim()).filter(Boolean);
-  const qtys   = (mapped.quantities   || "").split(",").map(s => s.trim());
-  const prices = (rawData.item_prices || "").split(",").map(s => s.trim());
-  const extras = (mapped.item_options || "").split(";").map(s => s.trim());
-  const extrasPrices = (mapped.item_options_price || "").split(";").map(s => s.trim());
+  const items        = rawItems.split(",").map(s => s.trim()).filter(Boolean);
+  const qtys         = String(mapped.quantities || "").split(",").map(s => s.trim());
+  const prices       = String(rawData.item_prices || "").split(",").map(s => s.trim());
+  const extras       = String(mapped.item_options || "").split(";").map(s => s.trim());
+  const extrasPrices = String(mapped.item_options_price || "").split(";").map(s => s.trim());
 
-  mapped.items_array = items.map((name, i) => {
-    return {
-      name,
-      qty: qtys[i] || "1",
-      price: prices[i] || "",
-      extras: extras[i] || "",
-      extras_price: extrasPrices[i] || ""
-    };
-  });
+  mapped.items_array = items.map((name, i) => ({
+    name,
+    qty: qtys[i] || "1",
+    price: prices[i] || "",
+    extras: extras[i] || "",
+    extras_price: extrasPrices[i] || ""
+  }));
 
   /* ─────────── 4. 渲染模板 ─────────── */
   const templateFile = config.template || "default_template.hbs";
@@ -73,10 +71,10 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   let emailHtml = "";
 
   if (fs.existsSync(templatePath)) {
-    const source   = fs.readFileSync(templatePath, "utf-8");
+    const source = fs.readFileSync(templatePath, "utf-8");
     const template = handlebars.compile(source);
-    emailText      = template(mapped);
-    emailHtml      = `<div style="font-family:monospace; font-size:16px; white-space:pre;">${emailText}</div>`;
+    emailText = template(mapped);
+    emailHtml = `<div style="font-family:monospace; font-size:16px; white-space:pre;">${emailText}</div>`;
   } else {
     emailText = fallbackTemplate(mapped);
     emailHtml = emailText.replace(/\n/g, "<br>");
