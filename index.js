@@ -28,13 +28,13 @@ const storeHours = {
   fuhua: {
     timezone: "Pacific/Auckland",
     hours: {
-      0: { open: "00:30", close: "23:59" },
-      1: { open: "00:30", close: "23:59" },
-      2: { open: "00:30", close: "23:59" },
-      3: { open: "00:30", close: "23:59" },
-      4: { open: "00:30", close: "23:59" },
-      5: { open: "00:30", close: "23:59" },
-      6: { open: "00:30", close: "23:59" }
+      0: { open: "00:01", close: "23:59" },
+      1: { open: "00:01", close: "23:59" },
+      2: { open: "00:01", close: "23:59" },
+      3: { open: "00:01", close: "23:59" },
+      4: { open: "00:01", close: "23:59" },
+      5: { open: "00:01", close: "23:59" },
+      6: { open: "00:01", close: "23:59" }
     }
   }
 };
