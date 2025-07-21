@@ -4,10 +4,12 @@ const { DateTime } = require("luxon");
 const app = express();
 const port = process.env.PORT || 8080;
 
-// ✅ 捕获 rawBody 用于 Retell 签名验证
+// ✅ 捕获 rawBody 用于 Retell 签名验证 + 放宽大小限制 + 打印大小
 app.use(bodyParser.json({
+  limit: "2mb",
   verify: (req, res, buf) => {
     req.rawBody = buf.toString();
+    console.log("📦 RawBody size (bytes):", buf.length); // ✅ 显示 webhook payload 大小
   }
 }));
 
