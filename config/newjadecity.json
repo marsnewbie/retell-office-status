@@ -5,7 +5,7 @@
     "pass_env": "MAIL_PASS"
   },
   "email_to": "marsnewbie6655@gmail.com, hong_gao@aliyun.com",
-  "template": "fuhua_email_template.hbs",
+  "template": "newjadecity_email_template.hbs",
   "field_mapping": {
     "first_name": "first_name",
     "phone": "phone_number",
