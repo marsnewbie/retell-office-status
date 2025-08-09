@@ -1,1 +1,24 @@
+<pre style="font-family: monospace; font-size: 16px">
+🗒 <span style="font-size: 14px">Call Summary: {{call_summary}}</span>
+📋 <span style="font-size: 14px">Menu Summary: {{menu_summary}}</span>
 
+*** {{store_name}} ***
+Order Type: <b>{{order_type}}</b>
+Customer Name: {{first_name}}
+Address: {{delivery_address}}
+-------------------------------
+Item                          Qty   Price
+{{#each items_array}}
+{{pad this.name 30}}  <b>x{{this.qty}}</b>  {{rightAlign (concat "£" this.price) 6}}
+{{#if this.extras}}
+{{pad (concat "(" this.extras ")") 30}}     {{rightAlign (concat "£" this.extras_price) 6}}
+{{/if}}
+{{/each}}
+-------------------------------
+Subtotal:     {{rightAlign (concat "£" subtotal) 6}}
+Delivery Fee: {{rightAlign (concat "£" delivery_fee) 6}}
+Total:        {{rightAlign (concat "£" total) 6}}
+-------------------------------
+Thank you!
+📞 Incoming Call: {{from_number}}
+</pre>
