@@ -31,7 +31,7 @@ const storeHours = {
     timezone: "Europe/London",
     hours: {
       0: { open: "11:00", close: "23:30" },
-      1: null,
+      1: { open: "08:00", close: "23:00" },
       2: { open: "11:00", close: "23:00" },
       3: { open: "11:00", close: "23:30" },
       4: { open: "11:00", close: "23:30" },
