@@ -14,6 +14,7 @@
     "quantities": "quantities",
     "subtotal": "subtotal_amount",
     "total": "total_amount",
-    "note": "order_note"
+    "note": "order_note",
+    "delivery_fee": "delivery_fee"
   }
 }
