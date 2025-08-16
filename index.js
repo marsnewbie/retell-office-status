@@ -30,13 +30,13 @@ const storeHours = {
   newjadecity: {
     timezone: "Europe/London",
     hours: {
-      0: { open: "11:00", close: "23:30" },
-      1: { open: "08:00", close: "23:00" },
-      2: { open: "01:00", close: "23:00" },
-      3: { open: "01:00", close: "23:30" },
-      4: { open: "11:00", close: "23:30" },
-      5: { open: "11:00", close: "23:30" },
-      6: { open: "11:00", close: "23:30" }
+      0: { open: "00:05", close: "23:30" },
+      1: { open: "00:05", close: "23:00" },
+      2: { open: "00:05", close: "23:00" },
+      3: { open: "00:05", close: "23:30" },
+      4: { open: "00:05", close: "23:30" },
+      5: { open: "00:05", close: "23:30" },
+      6: { open: "00:05", close: "23:30" }
     }
   },
   fuhua: {
