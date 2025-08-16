@@ -63,7 +63,8 @@ router.post("/order-confirmed", async (req, res) => {
       store_name: matchedConfig.store_name,
       order_type: mapped.order_type,
       first_name: mapped.first_name,
-      delivery_address: analysis.delivery_address || "",
+      delivery_address: mapped.delivery_address || analysis.delivery_address || "",
+      postcode: mapped.postcode || analysis.postcode || "",
       menu_items: mapped.items,
       menu_items_with_notes: mapped.items_with_notes,
       item_options: String(mapped.item_options || ""),
@@ -76,8 +77,8 @@ router.post("/order-confirmed", async (req, res) => {
       note: mapped.note,
       from_number: fromNumber,
       call_summary: analysis.summary || analysis.detailed_call_summary || "",
-  menu_summary: analysis.menu_summary || ""  // ✅ 新增字段
-});
+      menu_summary: analysis.menu_summary || ""  // ✅ 新增字段
+    });
 
     console.log(`🧾 Order cached for store: ${store}`);
     res.status(200).send("Email + cache success");

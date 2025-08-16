@@ -5,6 +5,7 @@
 Order Type: <b>{{order_type}}</b>
 Customer Name: {{first_name}}
 Address: {{delivery_address}}
+{{#if postcode}}Postcode: {{postcode}}{{/if}}
 -------------------------------
 Item                   Qty   Price
 {{#each items_array}}

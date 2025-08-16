@@ -49,6 +49,8 @@ async function sendOrderEmail({ config, rawData, from_number }) {
   mapped.menu_summary   = rawData.menu_summary || ""; // ✅ 新增
   mapped.from_number    = from_number;
   mapped.delivery_fee   = mapped.delivery_fee || rawData.delivery_fee || "0.00";
+  mapped.delivery_address = mapped.delivery_address || rawData.delivery_address || "";
+  mapped.postcode       = mapped.postcode || rawData.postcode || "";
 
   // 字段解析（所有字段都确保为字符串）
   const itemsRaw         = String(mapped.items || "");

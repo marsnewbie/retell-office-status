@@ -15,6 +15,8 @@
     "subtotal": "subtotal_amount",
     "total": "total_amount",
     "note": "order_note",
-    "delivery_fee": "delivery_fee"
+    "delivery_fee": "delivery_fee",
+    "delivery_address": "delivery_address",
+    "postcode": "postcode"
   }
 }

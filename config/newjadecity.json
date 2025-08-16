@@ -17,6 +17,8 @@
     "items_with_notes": "menu_items_with_notes",
     "item_options": "item_options",
     "item_options_price": "item_options_price",
-    "delivery_fee": "delivery_fee"
+    "delivery_fee": "delivery_fee",
+    "delivery_address": "delivery_address",
+    "postcode": "postcode"
   }
 }
