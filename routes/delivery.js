@@ -132,11 +132,14 @@ router.post("/quote", async (req, res) => {
     console.log("🔍 POST /delivery/quote - Request body:", JSON.stringify(req.body));
     console.log("🔍 POST /delivery/quote - Request headers:", JSON.stringify(req.headers));
     
+    // Retell 将参数放在 args 字段中
+    const args = req.body.args || req.body;
+    
     const payload = {
-      store: String(req.body.store || "").trim(),
-      postcode: req.body.postcode || "",
-      address: req.body.address || "",
-      subtotal: Number(req.body.subtotal || 0)
+      store: String(args.store || "").trim(),
+      postcode: args.postcode || "",
+      address: args.address || "",
+      subtotal: Number(args.subtotal || 0)
     };
     
     console.log("🔍 POST /delivery/quote - Parsed payload:", JSON.stringify(payload));
