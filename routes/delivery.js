@@ -15,126 +15,132 @@ function loadStoreConfig(storeId) {
 
 function round2(n) { return Math.round(Number(n) * 100) / 100; }
 
-router.get("/quote", async (req, res) => {
-  try {
-    const store = String(req.query.store || "").trim();
-    if (!store) return res.status(400).json({ success: false, error: "store is required" });
+// 把原有的处理主体提出来
+async function handleQuote(params) {
+  const { store, subtotal = 0, postcode = "", address = "" } = params;
 
-    const cfg = loadStoreConfig(store);
-    if (!cfg || !cfg.delivery) {
-      return res.status(404).json({ success: false, error: "store delivery config not found" });
+  const cfg = loadStoreConfig(store);
+  if (!cfg || !cfg.delivery) {
+    return { success: false, error: "store delivery config not found", rule_summary: "Store not found" };
+  }
+
+  const dcfg = cfg.delivery;
+  const active = (dcfg.active_rule_type || "postcode").toLowerCase();
+
+  if (active === "postcode") {
+    const norm = dcfg.postcode_rules?.normalize_uk_postcode
+      ? normalizeUKPostcode(postcode || address || "")
+      : String(postcode || address || "").toUpperCase();
+
+    if (!norm) {
+      return { success: true, delivery_available: false, rule_summary: "Postcode required." };
     }
 
-    const dcfg = cfg.delivery;
-    const subtotal = Number(req.query.subtotal || 0);
-
-    // ---------- Postcode 规则 ----------
-    if ((dcfg.active_rule_type || "postcode") === "postcode") {
-      const raw = req.query.postcode || req.query.address || "";
-      const normalized = dcfg.postcode_rules?.normalize_uk_postcode ? normalizeUKPostcode(raw) : String(raw).toUpperCase();
-      if (!normalized) {
-        return res.json({
-          success: true,
-          delivery_available: false,
-          rule_summary: "Postcode required."
-        });
-      }
-      const areas = dcfg.postcode_rules?.areas || [];
-      const patterns = areas.map(a => a.pattern);
-      const hitKey = pickBestPatternMatch(patterns, normalized);
-      if (!hitKey) {
-        return res.json({
-          success: true,
-          delivery_available: false,
-          rule_summary: "We currently deliver to selected WF9/WF7/S72/WF4 areas or within 3 miles"
-        });
-      }
-      const hit = areas.find(a => a.pattern === hitKey);
-      const feeBase = Number(hit.fee);
-      const min = Number(
-        hit.min_order_threshold ??
-        dcfg.postcode_rules.default_min_order_threshold ??
-        0
-      );
-      const extra = Number(
-        hit.extra_fee_if_below_threshold ??
-        dcfg.postcode_rules.default_extra_fee_if_below_threshold ??
-        0
-      );
-
-      const payload = {
-        success: true,
-        delivery_available: true,
-        delivery_fee: round2(feeBase),
-        rule_summary: `We deliver to ${hitKey} and nearby postcodes`
-      };
-      if (min > 0) payload.min_order_threshold = min;
-      if (min > 0 && subtotal < min && extra > 0) payload.extra_fee_if_below_threshold = round2(extra);
-      return res.json(payload);
-    }
-
-    // ---------- Distance 规则 ----------
-    // 1) 门店坐标
-    const origin = cfg.location || cfg.origin || {};
-    if (!origin.lat || !origin.lng) {
-      return res.json({ success: true, delivery_available: false, rule_summary: "Store coordinates missing" });
-    }
-    // 2) 客户坐标
-    const query = req.query.address || req.query.postcode;
-    if (!query) {
-      return res.json({ success: true, delivery_available: false, rule_summary: "Address or postcode required." });
-    }
-    const dest = await geocodeToCoord(query);
-    if (!dest) {
-      return res.json({ success: true, delivery_available: false, rule_summary: "Address not recognized." });
-    }
-    // 3) 计算距离
-    const miles = await drivingDistanceMiles(origin, dest);
-    if (miles == null) {
-      return res.json({ success: true, delivery_available: false, rule_summary: "Distance service unavailable." });
-    }
-
-    const rules = dcfg.distance_rules || {};
-    const bands = rules.bands || [];
-    const noServiceBeyond = Number(rules.no_service_beyond ?? Infinity);
-    if (miles > noServiceBeyond) {
-      return res.json({
+    const areas = dcfg.postcode_rules?.areas || [];
+    const patterns = areas.map(a => a.pattern);
+    const best = pickBestPatternMatch(patterns, norm);
+    if (!best) {
+      return {
         success: true,
         delivery_available: false,
-        rule_summary: `We deliver up to ${noServiceBeyond} miles`
-      });
+        rule_summary: "We currently deliver to selected WF9/WF7/S72/WF4 areas or within 3 miles"
+      };
     }
-
-    const matched = bands.find(b => miles <= Number(b.max_distance));
-    if (!matched) {
-      return res.json({ success: true, delivery_available: false, rule_summary: "Out of delivery distance." });
-    }
-
-    // 统一用 postcode 规则里的默认 min/extra（与要求一致：min=10，未达 +1）
-    const min = Number(dcfg.postcode_rules?.default_min_order_threshold ?? 0);
-    const feeOver = Number(matched.fee_if_subtotal_gte || 0);
-    const feeUnder = Number(matched.fee_if_subtotal_lt || feeOver);
-    const fee = subtotal >= min ? feeOver : feeUnder;
+    const hit = areas.find(a => a.pattern === best);
+    const base = Number(hit.fee);
+    const min = Number(hit.min_order_threshold ?? dcfg.postcode_rules.default_min_order_threshold ?? 0);
+    const extra = Number(hit.extra_fee_if_below_threshold ?? dcfg.postcode_rules.default_extra_fee_if_below_threshold ?? 0);
 
     const resp = {
       success: true,
       delivery_available: true,
-      delivery_fee: round2(fee),
-      rule_summary: `Within ${matched.max_distance} miles band (distance ~ ${round2(miles)} mi)`
+      delivery_fee: round2(base),
+      rule_summary: `We deliver to ${best} and nearby postcodes`
     };
     if (min > 0) resp.min_order_threshold = min;
-    if (subtotal < min && feeUnder > feeOver) {
-      resp.extra_fee_if_below_threshold = round2(feeUnder - feeOver);
-    }
-    return res.json(resp);
+    if (min > 0 && Number(subtotal) < min && extra > 0) resp.extra_fee_if_below_threshold = round2(extra);
+    return resp;
+  }
 
-  } catch (err) {
-    console.error("[delivery/quote]", err);
-    return res.status(500).json({
-      success: false,
-      error: "internal_error",
-      rule_summary: "Temporary error. Please try again."
-    });
+  // distance 规则
+  const origin = cfg.location || {};
+  if (!origin.lat || !origin.lng) {
+    return { success: true, delivery_available: false, rule_summary: "Store coordinates missing" };
+  }
+  const destQuery = address || postcode;
+  if (!destQuery) {
+    return { success: true, delivery_available: false, rule_summary: "Address or postcode required." };
+  }
+  const dest = await geocodeToCoord(destQuery);
+  if (!dest) {
+    return { success: true, delivery_available: false, rule_summary: "Address not recognized." };
+  }
+  const miles = await drivingDistanceMiles(origin, dest);
+  if (miles == null) {
+    return { success: true, delivery_available: false, rule_summary: "Distance service unavailable." };
+  }
+
+  const bands = dcfg.distance_rules?.bands || [];
+  const beyond = Number(dcfg.distance_rules?.no_service_beyond ?? Infinity);
+  if (miles > beyond) {
+    return { success: true, delivery_available: false, rule_summary: dcfg.distance_rules?.out_of_range_summary || "We deliver within 3 miles" };
+  }
+  const band = bands.find(b => miles <= Number(b.max_distance));
+  if (!band) {
+    return { success: true, delivery_available: false, rule_summary: dcfg.distance_rules?.out_of_range_summary || "Out of delivery distance." };
+  }
+
+  const min = Number(dcfg.postcode_rules?.default_min_order_threshold ?? 0);
+  const feeOver = Number(band.fee_if_subtotal_gte || 0);
+  const feeUnder = Number(band.fee_if_subtotal_lt || feeOver);
+  const fee = Number(subtotal) >= min ? feeOver : feeUnder;
+
+  const resp = {
+    success: true,
+    delivery_available: true,
+    delivery_fee: round2(fee),
+    rule_summary: dcfg.distance_rules?.summary || `Within ${band.max_distance} miles`
+  };
+  if (min > 0) resp.min_order_threshold = min;
+  if (Number(subtotal) < min && feeUnder > feeOver) {
+    resp.extra_fee_if_below_threshold = round2(feeUnder - feeOver);
+  }
+  return resp;
+}
+
+// GET 兼容（你之前已经能用 curl 成功）
+router.get("/quote", async (req, res) => {
+  try {
+    const payload = {
+      store: String(req.query.store || "").trim(),
+      postcode: req.query.postcode || "",
+      address: req.query.address || "",
+      subtotal: Number(req.query.subtotal || 0)
+    };
+    if (!payload.store) return res.status(400).json({ success: false, error: "store is required" });
+    const data = await handleQuote(payload);
+    return res.json(data);
+  } catch (e) {
+    console.error("GET /delivery/quote error:", e);
+    return res.status(500).json({ success: false, error: "internal_error", rule_summary: "Temporary error" });
+  }
+});
+
+// POST（给 Retell 用）
+router.post("/quote", async (req, res) => {
+  try {
+    const payload = {
+      store: String(req.body.store || "").trim(),
+      postcode: req.body.postcode || "",
+      address: req.body.address || "",
+      subtotal: Number(req.body.subtotal || 0)
+    };
+    if (!payload.store) return res.status(400).json({ success: false, error: "store is required" });
+    const data = await handleQuote(payload);
+    return res.json(data);
+  } catch (e) {
+    console.error("POST /delivery/quote error:", e);
+    return res.status(500).json({ success: false, error: "internal_error", rule_summary: "Temporary error" });
   }
 });
 
