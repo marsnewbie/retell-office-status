@@ -125,6 +125,10 @@ app.use("/webhook", webhookRoutes);
 const pollRoutes = require("./routes/poll");
 app.use(pollRoutes);
 
+// ✅ 注册配送费计算路由
+const deliveryRouter = require("./routes/delivery");
+app.use("/delivery", deliveryRouter);
+
 // ✅ 启动服务
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
