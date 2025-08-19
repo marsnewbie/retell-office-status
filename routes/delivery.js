@@ -129,17 +129,28 @@ router.get("/quote", async (req, res) => {
 // POST（给 Retell 用）
 router.post("/quote", async (req, res) => {
   try {
+    console.log("🔍 POST /delivery/quote - Request body:", JSON.stringify(req.body));
+    console.log("🔍 POST /delivery/quote - Request headers:", JSON.stringify(req.headers));
+    
     const payload = {
       store: String(req.body.store || "").trim(),
       postcode: req.body.postcode || "",
       address: req.body.address || "",
       subtotal: Number(req.body.subtotal || 0)
     };
-    if (!payload.store) return res.status(400).json({ success: false, error: "store is required" });
+    
+    console.log("🔍 POST /delivery/quote - Parsed payload:", JSON.stringify(payload));
+    
+    if (!payload.store) {
+      console.log("❌ POST /delivery/quote - Store is missing");
+      return res.status(400).json({ success: false, error: "store is required", rule_summary: "Store parameter is required" });
+    }
+    
     const data = await handleQuote(payload);
+    console.log("✅ POST /delivery/quote - Response:", JSON.stringify(data));
     return res.json(data);
   } catch (e) {
-    console.error("POST /delivery/quote error:", e);
+    console.error("❌ POST /delivery/quote error:", e);
     return res.status(500).json({ success: false, error: "internal_error", rule_summary: "Temporary error" });
   }
 });
