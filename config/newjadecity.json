@@ -20,5 +20,38 @@
     "delivery_fee": "delivery_fee",
     "delivery_address": "delivery_address",
     "postcode": "postcode"
+  },
+  "currency": "£",
+  "location": { "lat": 53.61085, "lng": -1.35667 },
+  "address": "12 Barnsley Road, Hemsworth, Pontefract, WF9 4PY",
+  "postcode": "WF9 4PY",
+  "delivery": {
+    "active_rule_type": "postcode",
+    "postcode_rules": {
+      "normalize_uk_postcode": true,
+      "default_min_order_threshold": 10,
+      "default_extra_fee_if_below_threshold": 1,
+      "areas": [
+        { "pattern": "WF9 4", "fee": 2.30 },
+        { "pattern": "WF9 3", "fee": 2.60 },
+        { "pattern": "S72 9", "fee": 2.60 },
+        { "pattern": "WF9 2", "fee": 2.80 },
+        { "pattern": "WF9 5", "fee": 2.80 },
+        { "pattern": "WF9 1", "fee": 3.30 },
+        { "pattern": "WF7 7", "fee": 3.30 },
+        { "pattern": "WF4 2", "fee": 3.30 },
+        { "pattern": "S72 8", "fee": 3.30 },
+        { "pattern": "S72 7", "fee": 3.30 }
+      ]
+    },
+    "distance_rules": {
+      "unit": "mile",
+      "bands": [
+        { "max_distance": 1.0, "fee_if_subtotal_gte": 0, "fee_if_subtotal_lt": 1 },
+        { "max_distance": 2.0, "fee_if_subtotal_gte": 1, "fee_if_subtotal_lt": 2 },
+        { "max_distance": 3.0, "fee_if_subtotal_gte": 2, "fee_if_subtotal_lt": 3 }
+      ],
+      "no_service_beyond": 3.0
+    }
   }
 }
