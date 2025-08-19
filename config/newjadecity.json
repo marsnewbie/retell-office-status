@@ -26,7 +26,7 @@
   "address": "12 Barnsley Road, Hemsworth, Pontefract, WF9 4PY",
   "postcode": "WF9 4PY",
   "delivery": {
-    "active_rule_type": "postcode",
+    "active_rule_type": "distance",
     "postcode_rules": {
       "normalize_uk_postcode": true,
       "default_min_order_threshold": 10,
