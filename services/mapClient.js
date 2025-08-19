@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const PROVIDER = process.env.MAPS_PROVIDER || "mapbox";
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
+const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
 
 // 地址/邮编 → 经纬度（仅 distance 规则用；postcode 规则不需要）
 async function geocodeToCoord(query) {
